@@ -3,20 +3,21 @@ package com.example.peachapi.usecase
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.fx.coroutines.parZip
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import com.example.peachapi.config.CustomConfig
 import com.example.peachapi.domain.ApiException
+import com.example.peachapi.domain.UnAuthorizeException
+import com.example.peachapi.domain.UnExpectError
 import com.example.peachapi.domain.VerifyIdTokenException
-import com.example.peachapi.domain.user.*
+import com.example.peachapi.domain.user.PrincipalId
+import com.example.peachapi.domain.user.User
+import com.example.peachapi.domain.user.UserRepository
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
-import com.google.auth.oauth2.TokenVerifier
 import org.springframework.stereotype.Component
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
-import com.example.peachapi.domain.UnAuthorizeException
-import com.example.peachapi.domain.UnExpectError
 import java.util.*
 
 @Component
@@ -25,7 +26,7 @@ class UserUseCase(private val userRepository: UserRepository, private val config
         getPayLoad(idToken)
             .mapLeft { VerifyIdTokenException() }
             .flatMap { payload ->
-                userRepository.getUser(PrincipalId(payload.principalId)).mapLeft { UnExpectError(null) }
+                userRepository.getUser(PrincipalId(payload.principalId)).mapLeft { UnExpectError(null, null) }
                     .flatMap { user ->
                         if(user === null) {
                             val newUser = User.newUser(payload.name, payload.email)
@@ -54,7 +55,7 @@ class UserUseCase(private val userRepository: UserRepository, private val config
         Either.catch {
             val calendar = Calendar.getInstance()
             calendar.time = Date()
-            calendar.add(Calendar.HOUR, 1)
+            calendar.add(Calendar.YEAR, 1)
             JWT.create()
                 .withIssuer("auth0")
                 .withClaim("userName", user.userName.value)

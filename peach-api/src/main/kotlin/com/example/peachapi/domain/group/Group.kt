@@ -10,8 +10,8 @@ data class Group(
     val groupId: GroupId,
     val groupName: GroupName,
     val groupRemarks: GroupRemarks,
-    val createAt: UserId,
-    val changedAt: UserId
+    val createBy: UserId,
+    val changedBy: UserId
 ) {
     companion object {
         fun newGroup(name: String, remarks: String, createAt: UserId): Group =

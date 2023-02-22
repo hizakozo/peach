@@ -17,11 +17,17 @@ class Router {
             POST("auth", handler::auth)
         }
     }
-
     @Bean
     fun meRoutes(handler: MeController) = coRouter {
         path("/v1").nest {
             GET("/me", handler::getMe)
+        }
+    }
+    @Bean
+    fun groupRoutes(handler: GroupsController) = coRouter {
+        path("/v1").nest {
+            POST("/groups", handler::create)
+            GET("/groups", handler::getGroups)
         }
     }
 }

@@ -13,13 +13,13 @@ import org.springframework.stereotype.Component
 class UserRepositoryImpl(private val dbDriver: UserDbDriver, private val dsl: DSLContext) : UserRepository {
     override fun createUser(user: User, principalId: PrincipalId): Either<ApiException, User> =
         dbDriver.insertUser(user, principalId, dsl)
-            .mapLeft { UnExpectError(it) }
+            .mapLeft { UnExpectError(it, "insert User failed") }
             .map { user }
 
     override fun getUser(principalId: PrincipalId): Either<ApiException, User?> =
         dbDriver.findUserByPrincipalId(principalId)
             .mapLeft {
-                UnExpectError(it) 
+                UnExpectError(it, "get user failed")
             }
             .map { it?.toUser() }
 
