@@ -1,0 +1,29 @@
+
+version: '3'
+services:
+  db:
+    image: postgres:14.5
+    ports:
+      - "5454:5432"
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: peach
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --no-locale"
+      TZ: "UTC"
+    container_name: 'peach-postgres'
+    networks:
+      - app-net
+    command: postgres -c listen_addresses='*'
+
+  redis:
+    image: redis:3.2.9
+    ports:
+      - "6363:6379"
+    container_name: 'peach-redis'
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge

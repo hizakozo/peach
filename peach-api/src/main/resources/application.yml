@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5454/peach
+    username: docker
+    password: docker
+    driverClassName: org.postgresql.Driver
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 
+            client-secret: 
+
+  redis:
+    host: 127.0.0.1
+    port: 6377
+  liquibase:
+    enabled: true
+    drop-first: false
+    change-log: classpath:liquibase/xml/db.changelog.xml
+    default-schema: public
+
+custom:
+  env: localhost
+  allowed-origins: http://localhost:4000
+  jwt-secret-key: jwtsectet
+  google-client-id:
