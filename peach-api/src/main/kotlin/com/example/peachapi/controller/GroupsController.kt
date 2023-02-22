@@ -22,8 +22,8 @@ class GroupsController(private val groupUseCase: GroupUseCase) {
     private suspend fun userContext() = ReactiveSecurityContextHolder.getContext()
         .asFlow().single()
     suspend fun create(request: ServerRequest): ServerResponse =
-        userContext().let { u ->
-            val user = u.authentication.details as AuthenticatedUser
+        userContext().let { context ->
+            val user = context.authentication.details as AuthenticatedUser
             request.bodyToMono<CreateGroupRequest>().awaitSingle().let {request ->
                 either<ApiException, Group> {
                     val group = Group.newGroup(

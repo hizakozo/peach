@@ -2,6 +2,7 @@ package com.example.peachapi.driver.peachdb
 
 import arrow.core.Either
 import com.example.peachapi.domain.group.Group
+import com.example.peachapi.domain.group.GroupId
 import com.example.peachapi.domain.group.UserGroup
 import com.example.peachapi.domain.user.UserId
 import com.example.peachapi.driver.peachdb.gen.Tables.*
@@ -40,6 +41,14 @@ class GroupDbDriver(private val dsl: DSLContext) {
                 .on(GROUPS.GROUP_ID.eq(USER_GROUPS.GROUP_ID))
                 .where(USER_GROUPS.USER_ID.eq(userId.value))
                 .fetchInto(GroupRecord::class.java)
+        }
+    fun existUserGroup(userId: UserId, groupId: GroupId): Either<Throwable, Boolean> =
+        Either.catch {
+            dsl.fetchExists(
+                dsl.selectOne()
+                    .from(USER_GROUPS)
+                    .where(USER_GROUPS.USER_ID.eq(userId.value).and(USER_GROUPS.GROUP_ID.eq(groupId.value)))
+            )
         }
 }
 

@@ -30,4 +30,11 @@ class Router {
             GET("/groups", handler::getGroups)
         }
     }
+    @Bean
+    fun categoryRoutes(handler: CategoriesController) = coRouter {
+        path("/v1").nest {
+            POST("/categories", handler::create)
+            GET("/categories/group/{groupId}", handler::getCategories)
+        }
+    }
 }

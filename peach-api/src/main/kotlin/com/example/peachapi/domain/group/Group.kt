@@ -4,7 +4,10 @@ import com.example.peachapi.domain.FCC
 import com.example.peachapi.domain.user.UserId
 import java.util.UUID
 
-data class Groups(override val list: List<Group>): FCC<Group>
+data class Groups(override val list: List<Group>): FCC<Group> {
+    fun isExist(groupId: GroupId): Boolean =
+        this.find { it.groupId.value === groupId.value } !== null
+}
 
 data class Group(
     val groupId: GroupId,

@@ -20,6 +20,10 @@ class GroupRepositoryImpl(private val dbDriver: GroupDbDriver, private val dsl: 
         dbDriver.getGroups(userId)
             .mapLeft { UnExpectError(it, it.message) }
             .map { it.toGroups() }
+
+    override fun existsUserGroup(userId: UserId, groupId: GroupId): Either<ApiException, Boolean> =
+        dbDriver.existUserGroup(userId, groupId)
+            .mapLeft { UnExpectError(it, it.message) }
 }
 
 fun List<GroupRecord>.toGroups(): Groups =
