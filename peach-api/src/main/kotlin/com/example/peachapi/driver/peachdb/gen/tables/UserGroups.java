@@ -56,7 +56,7 @@ public class UserGroups extends TableImpl<UserGroupsRecord> {
     /**
      * The column <code>public.user_groups.user_id</code>.
      */
-    public final TableField<UserGroupsRecord, UUID> USER_ID = createField(DSL.name("user_id"), SQLDataType.UUID.nullable(false), this, "");
+    public final TableField<UserGroupsRecord, String> USER_ID = createField(DSL.name("user_id"), SQLDataType.VARCHAR(100).nullable(false), this, "");
 
     private UserGroups(Name alias, Table<UserGroupsRecord> aliased) {
         this(alias, aliased, null);
@@ -108,15 +108,11 @@ public class UserGroups extends TableImpl<UserGroupsRecord> {
 
     @Override
     public List<ForeignKey<UserGroupsRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<UserGroupsRecord, ?>>asList(Keys.USER_GROUPS__USER_GROUPS_GROUP_ID_FKEY, Keys.USER_GROUPS__USER_GROUPS_USER_ID_FKEY);
+        return Arrays.<ForeignKey<UserGroupsRecord, ?>>asList(Keys.USER_GROUPS__USER_GROUPS_GROUP_ID_FKEY);
     }
 
     public Groups groups() {
         return new Groups(this, Keys.USER_GROUPS__USER_GROUPS_GROUP_ID_FKEY);
-    }
-
-    public Users users() {
-        return new Users(this, Keys.USER_GROUPS__USER_GROUPS_USER_ID_FKEY);
     }
 
     @Override
@@ -150,7 +146,7 @@ public class UserGroups extends TableImpl<UserGroupsRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row2<UUID, UUID> fieldsRow() {
+    public Row2<UUID, String> fieldsRow() {
         return (Row2) super.fieldsRow();
     }
 }

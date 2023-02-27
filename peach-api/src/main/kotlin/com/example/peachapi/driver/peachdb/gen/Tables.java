@@ -7,14 +7,12 @@ package com.example.peachapi.driver.peachdb.gen;
 import com.example.peachapi.driver.peachdb.gen.tables.Categories;
 import com.example.peachapi.driver.peachdb.gen.tables.Databasechangelog;
 import com.example.peachapi.driver.peachdb.gen.tables.Databasechangeloglock;
-import com.example.peachapi.driver.peachdb.gen.tables.GoogleAuthentications;
 import com.example.peachapi.driver.peachdb.gen.tables.GroupEntryQualifications;
 import com.example.peachapi.driver.peachdb.gen.tables.Groups;
 import com.example.peachapi.driver.peachdb.gen.tables.ItemStatues;
 import com.example.peachapi.driver.peachdb.gen.tables.Items;
 import com.example.peachapi.driver.peachdb.gen.tables.Statues;
 import com.example.peachapi.driver.peachdb.gen.tables.UserGroups;
-import com.example.peachapi.driver.peachdb.gen.tables.Users;
 
 
 /**
@@ -37,11 +35,6 @@ public class Tables {
      * The table <code>public.databasechangeloglock</code>.
      */
     public static final Databasechangeloglock DATABASECHANGELOGLOCK = Databasechangeloglock.DATABASECHANGELOGLOCK;
-
-    /**
-     * The table <code>public.google_authentications</code>.
-     */
-    public static final GoogleAuthentications GOOGLE_AUTHENTICATIONS = GoogleAuthentications.GOOGLE_AUTHENTICATIONS;
 
     /**
      * The table <code>public.group_entry_qualifications</code>.
@@ -72,9 +65,4 @@ public class Tables {
      * The table <code>public.user_groups</code>.
      */
     public static final UserGroups USER_GROUPS = UserGroups.USER_GROUPS;
-
-    /**
-     * The table <code>public.users</code>.
-     */
-    public static final Users USERS = Users.USERS;
 }

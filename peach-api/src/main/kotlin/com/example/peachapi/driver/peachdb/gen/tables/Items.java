@@ -77,7 +77,7 @@ public class Items extends TableImpl<ItemsRecord> {
     /**
      * The column <code>public.items.created_by</code>.
      */
-    public final TableField<ItemsRecord, UUID> CREATED_BY = createField(DSL.name("created_by"), SQLDataType.UUID.nullable(false), this, "");
+    public final TableField<ItemsRecord, String> CREATED_BY = createField(DSL.name("created_by"), SQLDataType.VARCHAR(100).nullable(false), this, "");
 
     /**
      * The column <code>public.items.changed_at</code>.
@@ -87,12 +87,12 @@ public class Items extends TableImpl<ItemsRecord> {
     /**
      * The column <code>public.items.changed_by</code>.
      */
-    public final TableField<ItemsRecord, UUID> CHANGED_BY = createField(DSL.name("changed_by"), SQLDataType.UUID.nullable(false), this, "");
+    public final TableField<ItemsRecord, String> CHANGED_BY = createField(DSL.name("changed_by"), SQLDataType.VARCHAR(100).nullable(false), this, "");
 
     /**
      * The column <code>public.items.deleted_by</code>.
      */
-    public final TableField<ItemsRecord, UUID> DELETED_BY = createField(DSL.name("deleted_by"), SQLDataType.UUID, this, "");
+    public final TableField<ItemsRecord, String> DELETED_BY = createField(DSL.name("deleted_by"), SQLDataType.VARCHAR(100).defaultValue(DSL.field("NULL::character varying", SQLDataType.VARCHAR)), this, "");
 
     /**
      * The column <code>public.items.deleted_at</code>.
@@ -187,7 +187,7 @@ public class Items extends TableImpl<ItemsRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row10<UUID, UUID, String, String, LocalDateTime, UUID, LocalDateTime, UUID, UUID, LocalDateTime> fieldsRow() {
+    public Row10<UUID, UUID, String, String, LocalDateTime, String, LocalDateTime, String, String, LocalDateTime> fieldsRow() {
         return (Row10) super.fieldsRow();
     }
 }

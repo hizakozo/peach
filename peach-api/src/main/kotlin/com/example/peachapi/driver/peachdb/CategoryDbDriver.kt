@@ -50,6 +50,6 @@ data class CategoriesRecord(
     val categoryId: UUID,
     val categoryName: String,
     val categoryRemarks: String,
-    val createdBy: UUID,
-    val changedBy: UUID
+    val createdBy: String,
+    val changedBy: String
 )

@@ -1,5 +1,6 @@
 package com.example.peachapi.config
 
+import com.example.peachapi.utils.JwtUtil
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -18,7 +19,7 @@ import org.springframework.web.server.WebFilter
 @Configuration
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
-class WebSecurityConfig(val config: CustomConfig){
+class WebSecurityConfig(val config: CustomConfig, val jwtUtil: JwtUtil){
 
     val API_PATH = "/v1/**"
 
@@ -29,7 +30,7 @@ class WebSecurityConfig(val config: CustomConfig){
             .withDisableHttpBasicAuth()
             .withPublicEndPoint(HttpMethod.GET, "/ping")
             .withPublicEndPoint(HttpMethod.POST,"/auth")
-            .withSessionAuthentication(API_PATH, SessionJwtFilter(config))
+            .withSessionAuthentication(API_PATH, SessionJwtFilter(config, jwtUtil))
             .csrf().disable()
 
         return http.build()

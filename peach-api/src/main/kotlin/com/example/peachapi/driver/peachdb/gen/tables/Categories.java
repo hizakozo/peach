@@ -77,7 +77,7 @@ public class Categories extends TableImpl<CategoriesRecord> {
     /**
      * The column <code>public.categories.created_by</code>.
      */
-    public final TableField<CategoriesRecord, UUID> CREATED_BY = createField(DSL.name("created_by"), SQLDataType.UUID.nullable(false), this, "");
+    public final TableField<CategoriesRecord, String> CREATED_BY = createField(DSL.name("created_by"), SQLDataType.VARCHAR(100).nullable(false), this, "");
 
     /**
      * The column <code>public.categories.changed_at</code>.
@@ -87,7 +87,7 @@ public class Categories extends TableImpl<CategoriesRecord> {
     /**
      * The column <code>public.categories.changed_by</code>.
      */
-    public final TableField<CategoriesRecord, UUID> CHANGED_BY = createField(DSL.name("changed_by"), SQLDataType.UUID.nullable(false), this, "");
+    public final TableField<CategoriesRecord, String> CHANGED_BY = createField(DSL.name("changed_by"), SQLDataType.VARCHAR(100).nullable(false), this, "");
 
     private Categories(Name alias, Table<CategoriesRecord> aliased) {
         this(alias, aliased, null);
@@ -177,7 +177,7 @@ public class Categories extends TableImpl<CategoriesRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row8<UUID, UUID, String, String, LocalDateTime, UUID, LocalDateTime, UUID> fieldsRow() {
+    public Row8<UUID, UUID, String, String, LocalDateTime, String, LocalDateTime, String> fieldsRow() {
         return (Row8) super.fieldsRow();
     }
 }

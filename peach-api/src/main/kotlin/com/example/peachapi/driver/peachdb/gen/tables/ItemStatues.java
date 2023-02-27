@@ -67,7 +67,7 @@ public class ItemStatues extends TableImpl<ItemStatuesRecord> {
     /**
      * The column <code>public.item_statues.created_by</code>.
      */
-    public final TableField<ItemStatuesRecord, UUID> CREATED_BY = createField(DSL.name("created_by"), SQLDataType.UUID.nullable(false), this, "");
+    public final TableField<ItemStatuesRecord, String> CREATED_BY = createField(DSL.name("created_by"), SQLDataType.VARCHAR(100).nullable(false), this, "");
 
     /**
      * The column <code>public.item_statues.changed_at</code>.
@@ -77,7 +77,7 @@ public class ItemStatues extends TableImpl<ItemStatuesRecord> {
     /**
      * The column <code>public.item_statues.changed_by</code>.
      */
-    public final TableField<ItemStatuesRecord, UUID> CHANGED_BY = createField(DSL.name("changed_by"), SQLDataType.UUID.nullable(false), this, "");
+    public final TableField<ItemStatuesRecord, String> CHANGED_BY = createField(DSL.name("changed_by"), SQLDataType.VARCHAR(100).nullable(false), this, "");
 
     private ItemStatues(Name alias, Table<ItemStatuesRecord> aliased) {
         this(alias, aliased, null);
@@ -171,7 +171,7 @@ public class ItemStatues extends TableImpl<ItemStatuesRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row6<UUID, UUID, LocalDateTime, UUID, LocalDateTime, UUID> fieldsRow() {
+    public Row6<UUID, UUID, LocalDateTime, String, LocalDateTime, String> fieldsRow() {
         return (Row6) super.fieldsRow();
     }
 }

@@ -7,14 +7,12 @@ package com.example.peachapi.driver.peachdb.gen;
 import com.example.peachapi.driver.peachdb.gen.tables.Categories;
 import com.example.peachapi.driver.peachdb.gen.tables.Databasechangelog;
 import com.example.peachapi.driver.peachdb.gen.tables.Databasechangeloglock;
-import com.example.peachapi.driver.peachdb.gen.tables.GoogleAuthentications;
 import com.example.peachapi.driver.peachdb.gen.tables.GroupEntryQualifications;
 import com.example.peachapi.driver.peachdb.gen.tables.Groups;
 import com.example.peachapi.driver.peachdb.gen.tables.ItemStatues;
 import com.example.peachapi.driver.peachdb.gen.tables.Items;
 import com.example.peachapi.driver.peachdb.gen.tables.Statues;
 import com.example.peachapi.driver.peachdb.gen.tables.UserGroups;
-import com.example.peachapi.driver.peachdb.gen.tables.Users;
 
 import java.util.Arrays;
 import java.util.List;
@@ -53,11 +51,6 @@ public class Public extends SchemaImpl {
     public final Databasechangeloglock DATABASECHANGELOGLOCK = Databasechangeloglock.DATABASECHANGELOGLOCK;
 
     /**
-     * The table <code>public.google_authentications</code>.
-     */
-    public final GoogleAuthentications GOOGLE_AUTHENTICATIONS = GoogleAuthentications.GOOGLE_AUTHENTICATIONS;
-
-    /**
      * The table <code>public.group_entry_qualifications</code>.
      */
     public final GroupEntryQualifications GROUP_ENTRY_QUALIFICATIONS = GroupEntryQualifications.GROUP_ENTRY_QUALIFICATIONS;
@@ -88,11 +81,6 @@ public class Public extends SchemaImpl {
     public final UserGroups USER_GROUPS = UserGroups.USER_GROUPS;
 
     /**
-     * The table <code>public.users</code>.
-     */
-    public final Users USERS = Users.USERS;
-
-    /**
      * No further instances allowed
      */
     private Public() {
@@ -111,13 +99,11 @@ public class Public extends SchemaImpl {
             Categories.CATEGORIES,
             Databasechangelog.DATABASECHANGELOG,
             Databasechangeloglock.DATABASECHANGELOGLOCK,
-            GoogleAuthentications.GOOGLE_AUTHENTICATIONS,
             GroupEntryQualifications.GROUP_ENTRY_QUALIFICATIONS,
             Groups.GROUPS,
             ItemStatues.ITEM_STATUES,
             Items.ITEMS,
             Statues.STATUES,
-            UserGroups.USER_GROUPS,
-            Users.USERS);
+            UserGroups.USER_GROUPS);
     }
 }

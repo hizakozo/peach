@@ -42,6 +42,7 @@ dependencies {
 	implementation("io.arrow-kt:arrow-fx-stm:1.0.1")
 	implementation("commons-validator:commons-validator:1.7")
 
+	implementation("com.google.firebase:firebase-admin:9.1.1")
 
 	implementation("org.liquibase:liquibase-core:4.19.0")
 	implementation("org.liquibase:liquibase-groovy-dsl:3.0.2")

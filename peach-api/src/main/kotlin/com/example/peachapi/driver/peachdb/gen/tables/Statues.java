@@ -77,7 +77,7 @@ public class Statues extends TableImpl<StatuesRecord> {
     /**
      * The column <code>public.statues.created_by</code>.
      */
-    public final TableField<StatuesRecord, UUID> CREATED_BY = createField(DSL.name("created_by"), SQLDataType.UUID.nullable(false), this, "");
+    public final TableField<StatuesRecord, String> CREATED_BY = createField(DSL.name("created_by"), SQLDataType.VARCHAR(100).nullable(false), this, "");
 
     /**
      * The column <code>public.statues.changed_at</code>.
@@ -87,12 +87,12 @@ public class Statues extends TableImpl<StatuesRecord> {
     /**
      * The column <code>public.statues.changed_by</code>.
      */
-    public final TableField<StatuesRecord, UUID> CHANGED_BY = createField(DSL.name("changed_by"), SQLDataType.UUID.nullable(false), this, "");
+    public final TableField<StatuesRecord, String> CHANGED_BY = createField(DSL.name("changed_by"), SQLDataType.VARCHAR(100).nullable(false), this, "");
 
     /**
      * The column <code>public.statues.deleted_by</code>.
      */
-    public final TableField<StatuesRecord, UUID> DELETED_BY = createField(DSL.name("deleted_by"), SQLDataType.UUID, this, "");
+    public final TableField<StatuesRecord, String> DELETED_BY = createField(DSL.name("deleted_by"), SQLDataType.VARCHAR(100).defaultValue(DSL.field("NULL::character varying", SQLDataType.VARCHAR)), this, "");
 
     /**
      * The column <code>public.statues.deleted_at</code>.
@@ -187,7 +187,7 @@ public class Statues extends TableImpl<StatuesRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row10<UUID, UUID, String, String, LocalDateTime, UUID, LocalDateTime, UUID, UUID, LocalDateTime> fieldsRow() {
+    public Row10<UUID, UUID, String, String, LocalDateTime, String, LocalDateTime, String, String, LocalDateTime> fieldsRow() {
         return (Row10) super.fieldsRow();
     }
 }

@@ -6,9 +6,6 @@ import com.example.peachapi.domain.group.GroupId
 import com.example.peachapi.domain.group.UserGroup
 import com.example.peachapi.domain.user.UserId
 import com.example.peachapi.driver.peachdb.gen.Tables.*
-import com.example.peachapi.driver.peachdb.gen.tables.GoogleAuthentications
-import com.example.peachapi.driver.peachdb.gen.tables.Groups
-import com.example.peachapi.driver.peachdb.gen.tables.Users
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Component
@@ -56,6 +53,6 @@ data class GroupRecord(
     val groupId: UUID,
     val groupName: String,
     val groupRemarks: String,
-    val createdBy: UUID,
-    val changedBy: UUID
+    val createdBy: String,
+    val changedBy: String
 )

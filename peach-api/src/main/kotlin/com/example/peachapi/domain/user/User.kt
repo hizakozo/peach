@@ -9,25 +9,14 @@ import java.util.UUID
 data class User(
     val userId: UserId,
     val userName: UserName,
-    val birthDay: BirthDay?,
     val mailAddress: MailAddress,
-) {
-    companion object {
-        fun newUser(userName: String, mailAddress: String): User =
-            User(
-                UserId(UUID.randomUUID()),
-                UserName(userName),
-                null,
-                MailAddress(mailAddress)
-            )
-    }
-}
+)
 
 data class Auth(
     val principalId: PrincipalId,
 )
 
-data class UserId(val value: UUID)
+data class UserId(val value: String)
 data class UserName(val value: String)
 data class BirthDay(val value: LocalDate?)
 data class MailAddress(val value: String)

@@ -12,12 +12,6 @@ class Router {
         GET("/ping", handler::healthCheck)
     }
     @Bean
-    fun userRoutes(handler: Auth) = coRouter {
-        path("/").nest {
-            POST("auth", handler::auth)
-        }
-    }
-    @Bean
     fun meRoutes(handler: MeController) = coRouter {
         path("/v1").nest {
             GET("/me", handler::getMe)
