@@ -25,14 +25,14 @@ class SessionJwtFilter(private val config: CustomConfig, private val jwtUtil: Jw
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> =
         when {
             exchange.request.matchesPattern("/v1/**") -> {
-                exchange.request.headers["X_TOKEN"]?.first().toString()
+                exchange.request.headers["authorization"]?.first().toString()
                     .let { token ->
-                        jwtUtil.verifyGoogleIdToken(token)
-                    }.toUserAuthentication()
-                    .let { userAuthentication ->
+                        jwtUtil.verifyGoogleIdToken(token)?.toUserAuthentication()
+                    }
+                    ?.let { userAuthentication ->
                         chain.filter(exchange)
                             .contextWrite(ReactiveSecurityContextHolder.withAuthentication(userAuthentication))
-                    }
+                    }?: chain.filter(exchange)
             }
             else -> { chain.filter(exchange)}
         }

@@ -73,10 +73,12 @@ data class CategoriesResponse(
 )
 
 fun Categories.toResponse() =
-    this.map {
-        CategoryResponse(
-            it.categoryId.value,
-            it.categoryName.value,
-            it.categoryRemarks.value
-        )
-    }
+    CategoriesResponse(
+        this.map {
+            CategoryResponse(
+                it.categoryId.value,
+                it.categoryName.value,
+                it.categoryRemarks.value
+            )
+        }
+    )
