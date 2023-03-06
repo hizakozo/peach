@@ -39,9 +39,10 @@ class Router {
         }
     }
     @Bean
-    fun statusRoutes(handler: ItemController) = coRouter {
+    fun statusRoutes(handler: StatusController) = coRouter {
         path("/v1").nest {
-            GET("/group/{groupId}/category/{categoryId}/statuses", handler::getItems)
+            GET("/group/{groupId}/category/{categoryId}/statuses", handler::getByCategoryId)
+            POST("/group/{groupId}/category/{categoryId}/statuses", handler::create)
         }
     }
 }
