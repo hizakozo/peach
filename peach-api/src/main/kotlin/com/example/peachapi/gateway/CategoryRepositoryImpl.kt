@@ -36,4 +36,8 @@ class CategoryRepositoryImpl(private val dbDriver: CategoryDbDriver): CategoryRe
                     )
                 }
             ) }
+
+    override fun existsByUserID(userId: UserId, categoryId: CategoryId): Either<ApiException, Boolean> =
+        dbDriver.existByUserId(userId, categoryId)
+            .mapLeft { UnExpectError(it, it.message) }
 }

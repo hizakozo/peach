@@ -4,12 +4,12 @@
 package com.example.peachapi.driver.peachdb.gen;
 
 
+import com.example.peachapi.driver.peachdb.gen.tables.AssignStatus;
 import com.example.peachapi.driver.peachdb.gen.tables.Categories;
 import com.example.peachapi.driver.peachdb.gen.tables.Databasechangelog;
 import com.example.peachapi.driver.peachdb.gen.tables.Databasechangeloglock;
 import com.example.peachapi.driver.peachdb.gen.tables.GroupEntryQualifications;
 import com.example.peachapi.driver.peachdb.gen.tables.Groups;
-import com.example.peachapi.driver.peachdb.gen.tables.ItemStatues;
 import com.example.peachapi.driver.peachdb.gen.tables.Items;
 import com.example.peachapi.driver.peachdb.gen.tables.Statues;
 import com.example.peachapi.driver.peachdb.gen.tables.UserGroups;
@@ -20,6 +20,11 @@ import com.example.peachapi.driver.peachdb.gen.tables.UserGroups;
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Tables {
+
+    /**
+     * The table <code>public.assign_status</code>.
+     */
+    public static final AssignStatus ASSIGN_STATUS = AssignStatus.ASSIGN_STATUS;
 
     /**
      * The table <code>public.categories</code>.
@@ -45,11 +50,6 @@ public class Tables {
      * The table <code>public.groups</code>.
      */
     public static final Groups GROUPS = Groups.GROUPS;
-
-    /**
-     * The table <code>public.item_statues</code>.
-     */
-    public static final ItemStatues ITEM_STATUES = ItemStatues.ITEM_STATUES;
 
     /**
      * The table <code>public.items</code>.

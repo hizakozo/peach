@@ -45,6 +45,16 @@ class CategoryDbDriver(private val dsl: DSLContext) {
                 .where(CATEGORIES.GROUP_ID.eq(groupId.value).and(USER_GROUPS.USER_ID.eq(userId.value)))
                 .fetchInto(CategoriesRecord::class.java)
         }
+    fun existByUserId(userId: UserId, categoryId: CategoryId): Either<Throwable, Boolean> =
+        Either.catch {
+            dsl.fetchExists(
+                dsl.selectOne()
+                    .from(CATEGORIES)
+                    .innerJoin(GROUPS).on(CATEGORIES.GROUP_ID.eq(GROUPS.GROUP_ID))
+                    .innerJoin(USER_GROUPS).on(GROUPS.GROUP_ID.eq(USER_GROUPS.GROUP_ID))
+                    .where(USER_GROUPS.USER_ID.eq(userId.value).and(CATEGORIES.CATEGORY_ID.eq(categoryId.value)))
+            )
+        }
 }
 
 data class CategoriesRecord(

@@ -3,6 +3,7 @@ package com.example.peachapi.controller
 import com.example.peachapi.config.AuthenticatedUser
 import com.example.peachapi.domain.category.Categories
 import com.example.peachapi.domain.category.Category
+import com.example.peachapi.domain.category.CategoryId
 import com.example.peachapi.domain.group.GroupId
 import com.example.peachapi.usecase.CategoryUseCase
 import kotlinx.coroutines.flow.single
@@ -24,11 +25,10 @@ class CategoriesController(private val categoryUseCase: CategoryUseCase) {
     suspend fun create(request: ServerRequest): ServerResponse =
         userContext().let { context ->
             val user = context.authentication.details as AuthenticatedUser
-            val groupId = GroupId(UUID.fromString(request.pathVariable("groupId")))
             request.bodyToMono<CreateCategoryRequest>().awaitSingle().let {request ->
                 val category = Category.newCategory(
                     request.categoryName,
-                    groupId,
+                    GroupId(UUID.fromString(request.groupId)),
                     request.categoryRemarks,
                     user.userId
                 )
@@ -38,19 +38,39 @@ class CategoriesController(private val categoryUseCase: CategoryUseCase) {
                 )
             }
         }
-    suspend fun getCategories(request: ServerRequest): ServerResponse =
+
+    suspend fun getItems(request: ServerRequest): ServerResponse =
         userContext().let { context ->
             val user = context.authentication.details as AuthenticatedUser
-            val groupId = GroupId(UUID.fromString(request.pathVariable("groupId")))
-            categoryUseCase.getCategories(groupId, user.userId)
+            val categoryId = CategoryId(UUID.fromString(request.pathVariable("categoryId")))
+            categoryUseCase.getItems(categoryId, user.userId)
                 .fold(
-                    {it.toResponse()},
-                    {ServerResponse.ok().bodyValueAndAwait(it.toResponse())}
+                    { it.toResponse() },
+                    {
+                        ServerResponse
+                            .ok()
+                            .bodyValueAndAwait(it.toResponse())
+                    }
+                )
+        }
+    suspend fun getStatues(request: ServerRequest): ServerResponse =
+        userContext().let { context ->
+            val user = context.authentication.details as AuthenticatedUser
+            val categoryId = CategoryId(UUID.fromString(request.pathVariable("categoryId")))
+            categoryUseCase.getStatues(user.userId, categoryId)
+                .fold(
+                    { it.toResponse() },
+                    {
+                        ServerResponse
+                            .ok()
+                            .bodyValueAndAwait(it.toResponse())
+                    }
                 )
         }
 }
 
 data class CreateCategoryRequest(
+    val groupId: String,
     val categoryName: String,
     val categoryRemarks: String
 )
@@ -66,19 +86,4 @@ fun Category.toResponse() =
         this.categoryId.value,
         this.categoryName.value,
         this.categoryRemarks.value
-    )
-
-data class CategoriesResponse(
-    val categories: List<CategoryResponse>
-)
-
-fun Categories.toResponse() =
-    CategoriesResponse(
-        this.map {
-            CategoryResponse(
-                it.categoryId.value,
-                it.categoryName.value,
-                it.categoryRemarks.value
-            )
-        }
     )

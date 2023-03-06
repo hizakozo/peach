@@ -1,6 +1,9 @@
 package com.example.peachapi.gateway
 
 import arrow.core.Either
+import arrow.core.computations.ResultEffect.bind
+import arrow.core.computations.either
+import arrow.core.flatMap
 import com.example.peachapi.domain.ApiException
 import com.example.peachapi.domain.UnExpectError
 import com.example.peachapi.domain.category.CategoryId
@@ -9,6 +12,7 @@ import com.example.peachapi.domain.status.StatusId
 import com.example.peachapi.domain.user.UserId
 import com.example.peachapi.driver.peachdb.ItemDriver
 import com.example.peachapi.driver.peachdb.ItemRecord
+import com.google.firebase.internal.ApiClientUtils
 import org.jooq.User
 import org.springframework.stereotype.Component
 import java.util.*
@@ -24,18 +28,34 @@ class ItemRepositoryImpl(private val driver: ItemDriver): ItemRepository {
         driver.createItem(item)
             .mapLeft { UnExpectError(it, it.message) }
             .map { item }
+    override fun createAssignStatus(
+        itemId: ItemId,
+        statusId: StatusId,
+        assignedBy: UserId
+    ): Either<ApiException, Item> =
+            driver.createAssignStatus(itemId, statusId, assignedBy)
+                .mapLeft { UnExpectError(it, it.message) }
+                .map {
+                    driver.fetchById(itemId).bind()!!.toItem()
+                }
+
+    override fun existByUserId(userId: UserId, itemId: ItemId): Either<ApiException, Boolean> =
+        driver.existByUserId(userId, itemId)
+            .mapLeft { UnExpectError(it, it.message) }
+
     private fun List<ItemRecord>.toItems(): Items =
         Items(
-            this.map { i ->
-                Item(
-                    ItemId(UUID.fromString(i.itemId)),
-                    CategoryId(UUID.fromString(i.categoryId)),
-                    if (i.statusId != null) StatusId(UUID.fromString(i.statusId)) else null,
-                    ItemName(i.itemName),
-                    ItemRemarks(i.itemRemarks),
-                    UserId(i.createdBy),
-                    UserId(i.changedBy)
-                )
-            }
+            this.map { it.toItem() }
+        )
+
+    private fun ItemRecord.toItem(): Item =
+        Item(
+            ItemId(UUID.fromString(this.itemId)),
+            CategoryId(UUID.fromString(this.categoryId)),
+            if (this.statusId != null) StatusId(UUID.fromString(this.statusId)) else null,
+            ItemName(this.itemName),
+            ItemRemarks(this.itemRemarks),
+            UserId(this.createdBy),
+            UserId(this.changedBy)
         )
 }

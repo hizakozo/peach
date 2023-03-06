@@ -9,31 +9,36 @@ import com.example.peachapi.domain.category.CategoryRepository
 import com.example.peachapi.domain.group.GroupId
 import com.example.peachapi.domain.group.GroupRepository
 import com.example.peachapi.domain.item.Item
+import com.example.peachapi.domain.item.ItemId
 import com.example.peachapi.domain.item.ItemRepository
 import com.example.peachapi.domain.item.Items
+import com.example.peachapi.domain.status.StatusId
 import com.example.peachapi.domain.user.UserId
 import com.google.protobuf.Api
 import org.springframework.stereotype.Component
 
 @Component
-class ItemUseCase(private val repository: ItemRepository, private val groupRepository: GroupRepository) {
-    fun getByCategoryId(categoryId: CategoryId, userId: UserId, groupId: GroupId): Either<ApiException, Items> =
-        groupRepository.existsUserGroup(userId, groupId)
-            .flatMap {isExist ->
-                if (isExist) {
-                    repository.getByCategoryId(categoryId)
+class ItemUseCase(private val itemRepository: ItemRepository, private val categoryRepository: CategoryRepository) {
+
+    fun createItem(userId: UserId, item: Item): Either<ApiException, Item> =
+        categoryRepository.existsByUserID(userId, item.categoryId)
+            .flatMap {
+                if (it) {
+                    itemRepository.createItem(item)
                 } else {
                     Either.Left(PermissionException(null, "unavailable category"))
                 }
             }
 
-    fun createItem(userId: UserId, groupId: GroupId, item: Item): Either<ApiException, Item> =
-        groupRepository.existsUserGroup(userId, groupId)
+    fun assignStatus(itemId: ItemId, statusId: StatusId, assignedBy: UserId): Either<ApiException, Item> =
+        itemRepository.existByUserId(assignedBy, itemId)
             .flatMap {
                 if (it) {
-                    repository.createItem(item)
+                    itemRepository.createAssignStatus(itemId, statusId, assignedBy)
                 } else {
-                    Either.Left(PermissionException(null, "unavailable category"))
+                    Either.Left(PermissionException(null, "unavailable item"))
                 }
             }
+
+
 }

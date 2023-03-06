@@ -4,12 +4,12 @@
 package com.example.peachapi.driver.peachdb.gen;
 
 
+import com.example.peachapi.driver.peachdb.gen.tables.AssignStatus;
 import com.example.peachapi.driver.peachdb.gen.tables.Categories;
 import com.example.peachapi.driver.peachdb.gen.tables.Databasechangelog;
 import com.example.peachapi.driver.peachdb.gen.tables.Databasechangeloglock;
 import com.example.peachapi.driver.peachdb.gen.tables.GroupEntryQualifications;
 import com.example.peachapi.driver.peachdb.gen.tables.Groups;
-import com.example.peachapi.driver.peachdb.gen.tables.ItemStatues;
 import com.example.peachapi.driver.peachdb.gen.tables.Items;
 import com.example.peachapi.driver.peachdb.gen.tables.Statues;
 import com.example.peachapi.driver.peachdb.gen.tables.UserGroups;
@@ -36,6 +36,11 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
+     * The table <code>public.assign_status</code>.
+     */
+    public final AssignStatus ASSIGN_STATUS = AssignStatus.ASSIGN_STATUS;
+
+    /**
      * The table <code>public.categories</code>.
      */
     public final Categories CATEGORIES = Categories.CATEGORIES;
@@ -59,11 +64,6 @@ public class Public extends SchemaImpl {
      * The table <code>public.groups</code>.
      */
     public final Groups GROUPS = Groups.GROUPS;
-
-    /**
-     * The table <code>public.item_statues</code>.
-     */
-    public final ItemStatues ITEM_STATUES = ItemStatues.ITEM_STATUES;
 
     /**
      * The table <code>public.items</code>.
@@ -96,12 +96,12 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.<Table<?>>asList(
+            AssignStatus.ASSIGN_STATUS,
             Categories.CATEGORIES,
             Databasechangelog.DATABASECHANGELOG,
             Databasechangeloglock.DATABASECHANGELOGLOCK,
             GroupEntryQualifications.GROUP_ENTRY_QUALIFICATIONS,
             Groups.GROUPS,
-            ItemStatues.ITEM_STATUES,
             Items.ITEMS,
             Statues.STATUES,
             UserGroups.USER_GROUPS);

@@ -2,10 +2,10 @@ package com.example.peachapi.controller
 
 import com.example.peachapi.config.AuthenticatedUser
 import com.example.peachapi.domain.category.CategoryId
-import com.example.peachapi.domain.group.GroupId
 import com.example.peachapi.domain.item.Item
+import com.example.peachapi.domain.item.ItemId
 import com.example.peachapi.domain.item.Items
-import com.example.peachapi.domain.user.UserId
+import com.example.peachapi.domain.status.StatusId
 import com.example.peachapi.usecase.ItemUseCase
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.reactive.asFlow
@@ -16,43 +16,41 @@ import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.bodyToMono
 import org.springframework.web.reactive.function.server.bodyValueAndAwait
-import java.util.UUID
-import javax.swing.GroupLayout.Group
+import java.util.*
 
 @Component
 class ItemController(private val useCase: ItemUseCase) {
     private suspend fun userContext() = ReactiveSecurityContextHolder.getContext()
         .asFlow().single()
 
-    suspend fun getItems(request: ServerRequest): ServerResponse =
-        userContext().let { context ->
-            val user = context.authentication.details as AuthenticatedUser
-            val categoryId = CategoryId(UUID.fromString(request.pathVariable("categoryId")))
-            val groupId = GroupId(UUID.fromString(request.pathVariable("groupId")))
-            useCase.getByCategoryId(categoryId, user.userId, groupId)
-                .fold(
-                    { it.toResponse() },
-                    {
-                        ServerResponse
-                            .ok()
-                            .bodyValueAndAwait(it.toResponse())
-                    }
-                )
-        }
-
     suspend fun createItem(request: ServerRequest): ServerResponse =
         userContext().let { context ->
             request.bodyToMono<CreateItemRequest>().awaitSingle().let {requestBody ->
                 val user = context.authentication.details as AuthenticatedUser
-                val categoryId = CategoryId(UUID.fromString(request.pathVariable("categoryId")))
-                val groupId = GroupId(UUID.fromString(request.pathVariable("groupId")))
                 val item = Item.newItem(
-                    categoryId,
+                    CategoryId(UUID.fromString(requestBody.categoryId)),
                     requestBody.itemName,
                     requestBody.itemRemarks,
                     user.userId
                 )
-                useCase.createItem(user.userId, groupId, item)
+                useCase.createItem(user.userId, item)
+                    .fold(
+                        { it.toResponse() },
+                        {
+                            ServerResponse
+                                .ok()
+                                .bodyValueAndAwait(it.toResponse())
+                        }
+                    )
+            }
+        }
+    suspend fun assignStatus(request: ServerRequest): ServerResponse =
+        userContext().let { context ->
+            request.bodyToMono<AssignStatusRequest>().awaitSingle().let {requestBody ->
+                val user = context.authentication.details as AuthenticatedUser
+                val statusId = StatusId(UUID.fromString(requestBody.statusId))
+                val itemId = ItemId(UUID.fromString(request.pathVariable("itemId")))
+                useCase.assignStatus(itemId, statusId, user.userId)
                     .fold(
                         { it.toResponse() },
                         {
@@ -66,8 +64,12 @@ class ItemController(private val useCase: ItemUseCase) {
 }
 
 data class CreateItemRequest(
+    val categoryId: String,
     val itemName: String,
     val itemRemarks: String
+)
+data class AssignStatusRequest(
+    val statusId: String
 )
 fun Items.toResponse(): ItemsResponse =
     ItemsResponse(

@@ -22,35 +22,17 @@ class StatusController(private val statusUseCase: StatusUseCase) {
     private suspend fun userContext() = ReactiveSecurityContextHolder.getContext()
         .asFlow().single()
 
-    suspend fun getByCategoryId(request: ServerRequest): ServerResponse =
-        userContext().let { context ->
-            val user = context.authentication.details as AuthenticatedUser
-            val categoryId = CategoryId(UUID.fromString(request.pathVariable("categoryId")))
-            val groupId = GroupId(UUID.fromString(request.pathVariable("groupId")))
-            statusUseCase.byCategoryId(user.userId, groupId, categoryId)
-                .fold(
-                    { it.toResponse() },
-                    {
-                        ServerResponse
-                            .ok()
-                            .bodyValueAndAwait(it.toResponse())
-                    }
-                )
-        }
-
     suspend fun create(request: ServerRequest): ServerResponse =
         userContext().let { context ->
             val user = context.authentication.details as AuthenticatedUser
             request.bodyToMono<CreateStatusRequest>().awaitSingle().let { requestBody ->
-                val categoryId = CategoryId(UUID.fromString(request.pathVariable("categoryId")))
-                val groupId = GroupId(UUID.fromString(request.pathVariable("groupId")))
                 val status = Status.newStatus(
-                    categoryId,
+                    CategoryId(UUID.fromString(requestBody.categoryId)),
                     requestBody.statusName,
                     requestBody.statusColor,
                     user.userId
                 )
-                statusUseCase.create(user.userId, groupId, status)
+                statusUseCase.create(user.userId, status)
                     .fold(
                         { it.toResponse() },
                         {
@@ -64,6 +46,7 @@ class StatusController(private val statusUseCase: StatusUseCase) {
 }
 
 data class CreateStatusRequest(
+    val categoryId: String,
     val statusName: String,
     val statusColor: String
 )

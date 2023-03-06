@@ -3,11 +3,14 @@ package com.example.peachapi.driver.peachdb
 import arrow.core.Either
 import com.example.peachapi.domain.category.CategoryId
 import com.example.peachapi.domain.item.ItemId
-import com.example.peachapi.domain.item.Items
 import com.example.peachapi.domain.status.Status
+import com.example.peachapi.domain.status.StatusId
+import com.example.peachapi.domain.user.UserId
+import com.example.peachapi.driver.peachdb.gen.Tables.ASSIGN_STATUS
+import com.example.peachapi.driver.peachdb.gen.Tables.STATUES
 import org.jooq.DSLContext
 import org.springframework.stereotype.Component
-import com.example.peachapi.driver.peachdb.gen.Tables.*
+
 @Component
 class StatusDriver(private val dsl: DSLContext) {
 
@@ -29,14 +32,6 @@ class StatusDriver(private val dsl: DSLContext) {
                 .set(STATUES.CREATED_BY, status.createBy.value)
                 .set(STATUES.CREATED_BY, status.changedBy.value)
                 .execute()
-        }
-
-    fun fetchItemStatuesByItemId(itemId: ItemId): Either<Throwable, List<ItemStatusesRecord>> =
-        Either.catch {
-            dsl.select(ITEM_STATUES.ITEM_ID, ITEM_STATUES.STATUS_ID)
-                .from(ITEM_STATUES)
-                .where(ITEM_STATUES.ITEM_ID.eq(itemId.value))
-                .fetchInto(ItemStatusesRecord::class.java)
         }
 }
 

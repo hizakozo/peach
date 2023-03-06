@@ -4,19 +4,19 @@
 package com.example.peachapi.driver.peachdb.gen;
 
 
+import com.example.peachapi.driver.peachdb.gen.tables.AssignStatus;
 import com.example.peachapi.driver.peachdb.gen.tables.Categories;
 import com.example.peachapi.driver.peachdb.gen.tables.Databasechangeloglock;
 import com.example.peachapi.driver.peachdb.gen.tables.GroupEntryQualifications;
 import com.example.peachapi.driver.peachdb.gen.tables.Groups;
-import com.example.peachapi.driver.peachdb.gen.tables.ItemStatues;
 import com.example.peachapi.driver.peachdb.gen.tables.Items;
 import com.example.peachapi.driver.peachdb.gen.tables.Statues;
 import com.example.peachapi.driver.peachdb.gen.tables.UserGroups;
+import com.example.peachapi.driver.peachdb.gen.tables.records.AssignStatusRecord;
 import com.example.peachapi.driver.peachdb.gen.tables.records.CategoriesRecord;
 import com.example.peachapi.driver.peachdb.gen.tables.records.DatabasechangeloglockRecord;
 import com.example.peachapi.driver.peachdb.gen.tables.records.GroupEntryQualificationsRecord;
 import com.example.peachapi.driver.peachdb.gen.tables.records.GroupsRecord;
-import com.example.peachapi.driver.peachdb.gen.tables.records.ItemStatuesRecord;
 import com.example.peachapi.driver.peachdb.gen.tables.records.ItemsRecord;
 import com.example.peachapi.driver.peachdb.gen.tables.records.StatuesRecord;
 import com.example.peachapi.driver.peachdb.gen.tables.records.UserGroupsRecord;
@@ -39,11 +39,11 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<AssignStatusRecord> ASSIGN_STATUS_PKEY = Internal.createUniqueKey(AssignStatus.ASSIGN_STATUS, DSL.name("assign_status_pkey"), new TableField[] { AssignStatus.ASSIGN_STATUS.ITEM_ID, AssignStatus.ASSIGN_STATUS.ASSIGNED_AT }, true);
     public static final UniqueKey<CategoriesRecord> CATEGORIES_PKEY = Internal.createUniqueKey(Categories.CATEGORIES, DSL.name("categories_pkey"), new TableField[] { Categories.CATEGORIES.CATEGORY_ID }, true);
     public static final UniqueKey<DatabasechangeloglockRecord> DATABASECHANGELOGLOCK_PKEY = Internal.createUniqueKey(Databasechangeloglock.DATABASECHANGELOGLOCK, DSL.name("databasechangeloglock_pkey"), new TableField[] { Databasechangeloglock.DATABASECHANGELOGLOCK.ID }, true);
     public static final UniqueKey<GroupEntryQualificationsRecord> GROUP_ENTRY_QUALIFICATIONS_PKEY = Internal.createUniqueKey(GroupEntryQualifications.GROUP_ENTRY_QUALIFICATIONS, DSL.name("group_entry_qualifications_pkey"), new TableField[] { GroupEntryQualifications.GROUP_ENTRY_QUALIFICATIONS.GROUP_ID }, true);
     public static final UniqueKey<GroupsRecord> GROUPS_PKEY = Internal.createUniqueKey(Groups.GROUPS, DSL.name("groups_pkey"), new TableField[] { Groups.GROUPS.GROUP_ID }, true);
-    public static final UniqueKey<ItemStatuesRecord> ITEM_STATUES_PKEY = Internal.createUniqueKey(ItemStatues.ITEM_STATUES, DSL.name("item_statues_pkey"), new TableField[] { ItemStatues.ITEM_STATUES.STATUS_ID }, true);
     public static final UniqueKey<ItemsRecord> ITEMS_PKEY = Internal.createUniqueKey(Items.ITEMS, DSL.name("items_pkey"), new TableField[] { Items.ITEMS.ITEM_ID }, true);
     public static final UniqueKey<StatuesRecord> STATUES_PKEY = Internal.createUniqueKey(Statues.STATUES, DSL.name("statues_pkey"), new TableField[] { Statues.STATUES.STATUS_ID }, true);
     public static final UniqueKey<UserGroupsRecord> USER_GROUPS_PKEY = Internal.createUniqueKey(UserGroups.USER_GROUPS, DSL.name("user_groups_pkey"), new TableField[] { UserGroups.USER_GROUPS.GROUP_ID, UserGroups.USER_GROUPS.USER_ID }, true);
@@ -52,10 +52,10 @@ public class Keys {
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final ForeignKey<AssignStatusRecord, ItemsRecord> ASSIGN_STATUS__ASSIGN_STATUS_ITEM_ID_FKEY = Internal.createForeignKey(AssignStatus.ASSIGN_STATUS, DSL.name("assign_status_item_id_fkey"), new TableField[] { AssignStatus.ASSIGN_STATUS.ITEM_ID }, Keys.ITEMS_PKEY, new TableField[] { Items.ITEMS.ITEM_ID }, true);
+    public static final ForeignKey<AssignStatusRecord, StatuesRecord> ASSIGN_STATUS__ASSIGN_STATUS_STATUS_ID_FKEY = Internal.createForeignKey(AssignStatus.ASSIGN_STATUS, DSL.name("assign_status_status_id_fkey"), new TableField[] { AssignStatus.ASSIGN_STATUS.STATUS_ID }, Keys.STATUES_PKEY, new TableField[] { Statues.STATUES.STATUS_ID }, true);
     public static final ForeignKey<CategoriesRecord, GroupsRecord> CATEGORIES__CATEGORIES_GROUP_ID_FKEY = Internal.createForeignKey(Categories.CATEGORIES, DSL.name("categories_group_id_fkey"), new TableField[] { Categories.CATEGORIES.GROUP_ID }, Keys.GROUPS_PKEY, new TableField[] { Groups.GROUPS.GROUP_ID }, true);
     public static final ForeignKey<GroupEntryQualificationsRecord, GroupsRecord> GROUP_ENTRY_QUALIFICATIONS__GROUP_ENTRY_QUALIFICATIONS_GROUP_ID_FKEY = Internal.createForeignKey(GroupEntryQualifications.GROUP_ENTRY_QUALIFICATIONS, DSL.name("group_entry_qualifications_group_id_fkey"), new TableField[] { GroupEntryQualifications.GROUP_ENTRY_QUALIFICATIONS.GROUP_ID }, Keys.GROUPS_PKEY, new TableField[] { Groups.GROUPS.GROUP_ID }, true);
-    public static final ForeignKey<ItemStatuesRecord, ItemsRecord> ITEM_STATUES__ITEM_STATUES_ITEM_ID_FKEY = Internal.createForeignKey(ItemStatues.ITEM_STATUES, DSL.name("item_statues_item_id_fkey"), new TableField[] { ItemStatues.ITEM_STATUES.ITEM_ID }, Keys.ITEMS_PKEY, new TableField[] { Items.ITEMS.ITEM_ID }, true);
-    public static final ForeignKey<ItemStatuesRecord, StatuesRecord> ITEM_STATUES__ITEM_STATUES_STATUS_ID_FKEY = Internal.createForeignKey(ItemStatues.ITEM_STATUES, DSL.name("item_statues_status_id_fkey"), new TableField[] { ItemStatues.ITEM_STATUES.STATUS_ID }, Keys.STATUES_PKEY, new TableField[] { Statues.STATUES.STATUS_ID }, true);
     public static final ForeignKey<ItemsRecord, CategoriesRecord> ITEMS__ITEMS_CATEGORY_ID_FKEY = Internal.createForeignKey(Items.ITEMS, DSL.name("items_category_id_fkey"), new TableField[] { Items.ITEMS.CATEGORY_ID }, Keys.CATEGORIES_PKEY, new TableField[] { Categories.CATEGORIES.CATEGORY_ID }, true);
     public static final ForeignKey<StatuesRecord, CategoriesRecord> STATUES__STATUES_CATEGORY_ID_FKEY = Internal.createForeignKey(Statues.STATUES, DSL.name("statues_category_id_fkey"), new TableField[] { Statues.STATUES.CATEGORY_ID }, Keys.CATEGORIES_PKEY, new TableField[] { Categories.CATEGORIES.CATEGORY_ID }, true);
     public static final ForeignKey<UserGroupsRecord, GroupsRecord> USER_GROUPS__USER_GROUPS_GROUP_ID_FKEY = Internal.createForeignKey(UserGroups.USER_GROUPS, DSL.name("user_groups_group_id_fkey"), new TableField[] { UserGroups.USER_GROUPS.GROUP_ID }, Keys.GROUPS_PKEY, new TableField[] { Groups.GROUPS.GROUP_ID }, true);

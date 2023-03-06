@@ -3,7 +3,9 @@ package com.example.peachapi.controller
 import arrow.core.computations.either
 import com.example.peachapi.config.AuthenticatedUser
 import com.example.peachapi.domain.ApiException
+import com.example.peachapi.domain.category.Categories
 import com.example.peachapi.domain.group.Group
+import com.example.peachapi.domain.group.GroupId
 import com.example.peachapi.domain.group.Groups
 import com.example.peachapi.usecase.GroupUseCase
 import kotlinx.coroutines.flow.single
@@ -49,6 +51,17 @@ class GroupsController(private val groupUseCase: GroupUseCase) {
                 {ServerResponse.ok().bodyValueAndAwait(it.toResponse())}
             )
         }
+
+    suspend fun getCategories(request: ServerRequest): ServerResponse =
+        userContext().let { context ->
+            val user = context.authentication.details as AuthenticatedUser
+            val groupId = GroupId(UUID.fromString(request.pathVariable("groupId")))
+            groupUseCase.getCategories(groupId, user.userId)
+                .fold(
+                    {it.toResponse()},
+                    {ServerResponse.ok().bodyValueAndAwait(it.toResponse())}
+                )
+        }
 }
 
 fun Group.toResponse(): GroupResponse =
@@ -74,3 +87,16 @@ fun Groups.toResponse(): GroupsResponse =
 data class GroupsResponse(
     val groups: List<GroupResponse>
 )
+data class CategoriesResponse(
+    val categories: List<CategoryResponse>
+)
+fun Categories.toResponse() =
+    CategoriesResponse(
+        this.map {
+            CategoryResponse(
+                it.categoryId.value,
+                it.categoryName.value,
+                it.categoryRemarks.value
+            )
+        }
+    )
