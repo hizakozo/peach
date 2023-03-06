@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.computations.either
 import com.example.peachapi.domain.category.Categories
 import com.example.peachapi.domain.category.Category
+import com.example.peachapi.domain.category.CategoryId
 import com.example.peachapi.domain.group.GroupId
 import com.example.peachapi.domain.user.UserId
 import com.example.peachapi.driver.peachdb.gen.Tables

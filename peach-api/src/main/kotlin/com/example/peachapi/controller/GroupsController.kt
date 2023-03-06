@@ -52,22 +52,22 @@ class GroupsController(private val groupUseCase: GroupUseCase) {
 }
 
 fun Group.toResponse(): GroupResponse =
-    GroupResponse(this.groupId.value, this.groupName.value, this.groupRemarks.value)
+    GroupResponse(this.groupId.value, this.groupName.value, this.groupRemarks?.value)
 data class CreateGroupRequest(
     val groupName: String,
-    val groupRemarks: String
+    val groupRemarks: String?
 )
 data class GroupResponse(
     val groupId: UUID,
     val groupName: String,
-    val groupRemarks: String
+    val groupRemarks: String?
 )
 
 fun Groups.toResponse(): GroupsResponse =
     GroupsResponse(
         this.map {
             GroupResponse(
-                it.groupId.value, it.groupName.value, it.groupRemarks.value
+                it.groupId.value, it.groupName.value, it.groupRemarks?.value
             )
         }
     )

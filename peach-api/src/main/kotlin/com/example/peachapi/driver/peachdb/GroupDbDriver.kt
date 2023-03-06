@@ -19,7 +19,7 @@ class GroupDbDriver(private val dsl: DSLContext) {
                 context.insertInto(GROUPS)
                     .set(GROUPS.GROUP_ID, group.groupId.value)
                     .set(GROUPS.GROUP_NAME, group.groupName.value)
-                    .set(GROUPS.GROUP_REMARKS, group.groupRemarks.value)
+                    .set(GROUPS.GROUP_REMARKS, group.groupRemarks?.value)
                     .set(GROUPS.CREATED_BY, group.createBy.value)
                     .set(GROUPS.CHANGED_BY, group.changedBy.value)
                     .execute()
@@ -52,7 +52,7 @@ class GroupDbDriver(private val dsl: DSLContext) {
 data class GroupRecord(
     val groupId: UUID,
     val groupName: String,
-    val groupRemarks: String,
+    val groupRemarks: String?,
     val createdBy: String,
     val changedBy: String
 )

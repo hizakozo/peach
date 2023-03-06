@@ -2,9 +2,11 @@ package com.example.peachapi.gateway
 
 import arrow.core.Either
 import com.example.peachapi.domain.ApiException
+import com.example.peachapi.domain.NotFoundDataException
 import com.example.peachapi.domain.UnExpectError
 import com.example.peachapi.domain.category.Categories
 import com.example.peachapi.domain.category.Category
+import com.example.peachapi.domain.category.CategoryId
 import com.example.peachapi.domain.category.CategoryRepository
 import com.example.peachapi.domain.group.GroupId
 import com.example.peachapi.domain.user.UserId

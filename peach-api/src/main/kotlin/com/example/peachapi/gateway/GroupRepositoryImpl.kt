@@ -24,18 +24,18 @@ class GroupRepositoryImpl(private val dbDriver: GroupDbDriver, private val dsl: 
     override fun existsUserGroup(userId: UserId, groupId: GroupId): Either<ApiException, Boolean> =
         dbDriver.existUserGroup(userId, groupId)
             .mapLeft { UnExpectError(it, it.message) }
+
+    private fun List<GroupRecord>.toGroups(): Groups =
+        Groups(
+            this.map { it.toGroup() }
+        )
+
+    private fun GroupRecord.toGroup(): Group =
+        Group(
+            GroupId(this.groupId),
+            GroupName(this.groupName),
+            if (this.groupRemarks == null) null else GroupRemarks(this.groupRemarks),
+            UserId(this.createdBy),
+            UserId(this.changedBy)
+        )
 }
-
-fun List<GroupRecord>.toGroups(): Groups =
-    Groups(
-        this.map { it.toGroup() }
-    )
-
-fun GroupRecord.toGroup(): Group =
-    Group(
-        GroupId(this.groupId),
-        GroupName(this.groupName),
-        GroupRemarks(this.groupRemarks),
-        UserId(this.createdBy),
-        UserId(this.changedBy)
-    )

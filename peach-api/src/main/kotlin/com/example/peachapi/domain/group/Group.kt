@@ -12,16 +12,16 @@ data class Groups(override val list: List<Group>): FCC<Group> {
 data class Group(
     val groupId: GroupId,
     val groupName: GroupName,
-    val groupRemarks: GroupRemarks,
+    val groupRemarks: GroupRemarks?,
     val createBy: UserId,
     val changedBy: UserId
 ) {
     companion object {
-        fun newGroup(name: String, remarks: String, createAt: UserId): Group =
+        fun newGroup(name: String, remarks: String?, createAt: UserId): Group =
             Group(
                 GroupId(UUID.randomUUID()),
                 GroupName(name),
-                GroupRemarks(remarks),
+                if(remarks == null) null else GroupRemarks(remarks),
                 createAt,
                 createAt
             )

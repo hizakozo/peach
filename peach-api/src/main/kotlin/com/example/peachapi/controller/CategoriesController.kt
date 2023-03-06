@@ -24,10 +24,11 @@ class CategoriesController(private val categoryUseCase: CategoryUseCase) {
     suspend fun create(request: ServerRequest): ServerResponse =
         userContext().let { context ->
             val user = context.authentication.details as AuthenticatedUser
+            val groupId = GroupId(UUID.fromString(request.pathVariable("groupId")))
             request.bodyToMono<CreateCategoryRequest>().awaitSingle().let {request ->
                 val category = Category.newCategory(
                     request.categoryName,
-                    GroupId(UUID.fromString(request.groupId)),
+                    groupId,
                     request.categoryRemarks,
                     user.userId
                 )
@@ -51,7 +52,6 @@ class CategoriesController(private val categoryUseCase: CategoryUseCase) {
 
 data class CreateCategoryRequest(
     val categoryName: String,
-    val groupId: String,
     val categoryRemarks: String
 )
 
