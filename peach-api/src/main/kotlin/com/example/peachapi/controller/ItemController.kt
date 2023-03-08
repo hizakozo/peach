@@ -81,7 +81,8 @@ fun  Item.toResponse(): ItemResponse =
         this.itemId.value.toString(),
         if(this.statusId != null) this.statusId.value.toString() else "EMPTY_STATUS",
         this.itemName.value,
-        this.itemRemarks?.value
+        this.itemRemarks?.value,
+        this.createdAt.value.toString()
     )
 data class ItemsResponse(
     val items: List<ItemResponse>
@@ -91,5 +92,6 @@ data class ItemResponse(
     val itemId: String,
     val statusId: String?,
     val itemName: String,
-    val itemRemarks: String?
+    val itemRemarks: String?,
+    val createdAt: String
 )

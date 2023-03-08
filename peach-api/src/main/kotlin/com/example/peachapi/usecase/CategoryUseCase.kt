@@ -35,7 +35,7 @@ class CategoryUseCase(
                 }
             }
 
-    fun getItems(categoryId: CategoryId, userId: UserId): Either<ApiException, Items> =
+    suspend fun getItems(categoryId: CategoryId, userId: UserId): Either<ApiException, Items> =
         categoryRepository.existsByUserID(userId, categoryId)
             .flatMap { isExist ->
                 if (isExist) {
@@ -45,7 +45,7 @@ class CategoryUseCase(
                 }
             }
 
-    fun getStatues(userId: UserId, categoryId: CategoryId): Either<ApiException, Statuses> =
+    suspend fun getStatues(userId: UserId, categoryId: CategoryId): Either<ApiException, Statuses> =
         categoryRepository.existsByUserID(userId, categoryId)
             .flatMap {
                 if (it) {

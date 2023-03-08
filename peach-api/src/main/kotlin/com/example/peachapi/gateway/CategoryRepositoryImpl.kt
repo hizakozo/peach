@@ -9,6 +9,7 @@ import com.example.peachapi.domain.category.Category
 import com.example.peachapi.domain.category.CategoryId
 import com.example.peachapi.domain.category.CategoryRepository
 import com.example.peachapi.domain.group.GroupId
+import com.example.peachapi.domain.status.StatusId
 import com.example.peachapi.domain.user.UserId
 import com.example.peachapi.driver.peachdb.CategoryDbDriver
 import org.jooq.User
@@ -37,7 +38,11 @@ class CategoryRepositoryImpl(private val dbDriver: CategoryDbDriver): CategoryRe
                 }
             ) }
 
-    override fun existsByUserID(userId: UserId, categoryId: CategoryId): Either<ApiException, Boolean> =
+    override suspend fun existsByUserID(userId: UserId, categoryId: CategoryId): Either<ApiException, Boolean> =
         dbDriver.existByUserId(userId, categoryId)
+            .mapLeft { UnExpectError(it, it.message) }
+
+    override suspend fun existByStatusId(userId: UserId, statusId: StatusId): Either<ApiException, Boolean> =
+        dbDriver.existByStatusId(userId, statusId)
             .mapLeft { UnExpectError(it, it.message) }
 }

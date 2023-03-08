@@ -11,5 +11,5 @@ interface ItemRepository {
     fun getByCategoryId(categoryId: CategoryId): Either<ApiException, Items>
     fun createItem(item: Item): Either<ApiException, Item>
     fun createAssignStatus(itemId: ItemId, statusId: StatusId, assignedBy: UserId): Either<ApiException, Item>
-    fun existByUserId(userId: UserId, itemId: ItemId): Either<ApiException, Boolean>
+    suspend fun existByUserId(userId: UserId, itemId: ItemId): Either<ApiException, Boolean>
 }

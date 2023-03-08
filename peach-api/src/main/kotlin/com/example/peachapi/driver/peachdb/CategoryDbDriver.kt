@@ -6,11 +6,13 @@ import com.example.peachapi.domain.category.Categories
 import com.example.peachapi.domain.category.Category
 import com.example.peachapi.domain.category.CategoryId
 import com.example.peachapi.domain.group.GroupId
+import com.example.peachapi.domain.status.StatusId
 import com.example.peachapi.domain.user.UserId
 import com.example.peachapi.driver.peachdb.gen.Tables
 import com.example.peachapi.driver.peachdb.gen.tables.Categories.CATEGORIES
 import com.example.peachapi.driver.peachdb.gen.tables.Groups.GROUPS
 import com.example.peachapi.driver.peachdb.gen.tables.UserGroups.USER_GROUPS
+import com.example.peachapi.driver.peachdb.gen.tables.Statues.STATUES
 import org.jooq.DSLContext
 import org.springframework.stereotype.Component
 import java.util.UUID
@@ -45,7 +47,7 @@ class CategoryDbDriver(private val dsl: DSLContext) {
                 .where(CATEGORIES.GROUP_ID.eq(groupId.value).and(USER_GROUPS.USER_ID.eq(userId.value)))
                 .fetchInto(CategoriesRecord::class.java)
         }
-    fun existByUserId(userId: UserId, categoryId: CategoryId): Either<Throwable, Boolean> =
+    suspend fun existByUserId(userId: UserId, categoryId: CategoryId): Either<Throwable, Boolean> =
         Either.catch {
             dsl.fetchExists(
                 dsl.selectOne()
@@ -53,6 +55,17 @@ class CategoryDbDriver(private val dsl: DSLContext) {
                     .innerJoin(GROUPS).on(CATEGORIES.GROUP_ID.eq(GROUPS.GROUP_ID))
                     .innerJoin(USER_GROUPS).on(GROUPS.GROUP_ID.eq(USER_GROUPS.GROUP_ID))
                     .where(USER_GROUPS.USER_ID.eq(userId.value).and(CATEGORIES.CATEGORY_ID.eq(categoryId.value)))
+            )
+        }
+    suspend fun existByStatusId(userId: UserId, statusId: StatusId): Either<Throwable, Boolean> =
+        Either.catch {
+            dsl.fetchExists(
+                dsl.selectOne()
+                    .from(CATEGORIES)
+                    .innerJoin(STATUES).on(CATEGORIES.CATEGORY_ID.eq(STATUES.CATEGORY_ID))
+                    .innerJoin(GROUPS).on(CATEGORIES.GROUP_ID.eq(GROUPS.GROUP_ID))
+                    .innerJoin(USER_GROUPS).on(GROUPS.GROUP_ID.eq(USER_GROUPS.GROUP_ID))
+                    .where(USER_GROUPS.USER_ID.eq(userId.value).and(STATUES.STATUS_ID.eq(statusId.value)))
             )
         }
 }

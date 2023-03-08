@@ -5,6 +5,7 @@ import arrow.core.computations.ResultEffect.bind
 import arrow.core.computations.either
 import arrow.core.flatMap
 import com.example.peachapi.domain.ApiException
+import com.example.peachapi.domain.PeachDateTime
 import com.example.peachapi.domain.UnExpectError
 import com.example.peachapi.domain.category.CategoryId
 import com.example.peachapi.domain.item.*
@@ -39,7 +40,7 @@ class ItemRepositoryImpl(private val driver: ItemDriver): ItemRepository {
                     driver.fetchById(itemId).bind()!!.toItem()
                 }
 
-    override fun existByUserId(userId: UserId, itemId: ItemId): Either<ApiException, Boolean> =
+    override suspend fun existByUserId(userId: UserId, itemId: ItemId): Either<ApiException, Boolean> =
         driver.existByUserId(userId, itemId)
             .mapLeft { UnExpectError(it, it.message) }
 
@@ -56,6 +57,7 @@ class ItemRepositoryImpl(private val driver: ItemDriver): ItemRepository {
             ItemName(this.itemName),
             ItemRemarks(this.itemRemarks),
             UserId(this.createdBy),
-            UserId(this.changedBy)
+            UserId(this.changedBy),
+            PeachDateTime(this.createdAt)
         )
 }

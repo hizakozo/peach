@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component
 @Component
 class StatusUseCase(private val statusRepository: StatusRepository, private val categoryRepository: CategoryRepository) {
 
-    fun create(userId: UserId, status: Status): Either<ApiException, Status> =
+    suspend fun create(userId: UserId, status: Status): Either<ApiException, Status> =
         categoryRepository.existsByUserID(userId, status.categoryId)
             .flatMap {
                 if (it) {
