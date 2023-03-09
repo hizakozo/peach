@@ -2,17 +2,17 @@ package com.example.peachapi.driver.peachdb
 
 import arrow.core.Either
 import arrow.core.computations.either
-import com.example.peachapi.domain.category.Categories
-import com.example.peachapi.domain.category.Category
-import com.example.peachapi.domain.category.CategoryId
+import com.example.peachapi.domain.category.*
 import com.example.peachapi.domain.group.GroupId
 import com.example.peachapi.domain.status.StatusId
 import com.example.peachapi.domain.user.UserId
 import com.example.peachapi.driver.peachdb.gen.Tables
+import com.example.peachapi.driver.peachdb.gen.Tables.DELETE_CATEGORY
 import com.example.peachapi.driver.peachdb.gen.tables.Categories.CATEGORIES
 import com.example.peachapi.driver.peachdb.gen.tables.Groups.GROUPS
 import com.example.peachapi.driver.peachdb.gen.tables.UserGroups.USER_GROUPS
 import com.example.peachapi.driver.peachdb.gen.tables.Statues.STATUES
+import com.example.peachapi.driver.peachdb.gen.tables.records.CategoriesRecord
 import org.jooq.DSLContext
 import org.springframework.stereotype.Component
 import java.util.UUID
@@ -32,7 +32,7 @@ class CategoryDbDriver(private val dsl: DSLContext) {
                 .execute()
         }
 
-    fun getCategories(groupId: GroupId, userId: UserId): Either<Throwable, List<CategoriesRecord>> =
+    fun getCategories(groupId: GroupId, userId: UserId): Either<Throwable, List<CategoryRecord>> =
         Either.catch {
             dsl.select(
                 CATEGORIES.CATEGORY_ID, CATEGORIES.CATEGORY_NAME,
@@ -45,7 +45,7 @@ class CategoryDbDriver(private val dsl: DSLContext) {
                 .innerJoin(USER_GROUPS)
                 .on(GROUPS.GROUP_ID.eq(USER_GROUPS.GROUP_ID))
                 .where(CATEGORIES.GROUP_ID.eq(groupId.value).and(USER_GROUPS.USER_ID.eq(userId.value)))
-                .fetchInto(CategoriesRecord::class.java)
+                .fetchInto(CategoryRecord::class.java)
         }
     suspend fun existByUserId(userId: UserId, categoryId: CategoryId): Either<Throwable, Boolean> =
         Either.catch {
@@ -68,10 +68,32 @@ class CategoryDbDriver(private val dsl: DSLContext) {
                     .where(USER_GROUPS.USER_ID.eq(userId.value).and(STATUES.STATUS_ID.eq(statusId.value)))
             )
         }
+
+    suspend fun update(categoryId: CategoryId, categoryName: CategoryName, categoryRemarks: CategoryRemarks, changedBy: UserId): Either<Throwable, CategoryRecord?> =
+        Either.catch {
+            dsl.update(CATEGORIES)
+                .set(CATEGORIES.CATEGORY_NAME, categoryName.value)
+                .set(CATEGORIES.CATEGORY_REMARKS, categoryRemarks.value)
+                .set(CATEGORIES.CHANGED_BY, changedBy.value)
+                .where(CATEGORIES.CATEGORY_ID.eq(categoryId.value))
+                .returning().fetchOne()?.toRecord()
+        }
+    suspend fun delete(categoryId: CategoryId, deleteBy: UserId): Either<Throwable, UUID?> =
+        Either.catch {
+            dsl.insertInto(DELETE_CATEGORY)
+                .set(DELETE_CATEGORY.CATEGORY_ID, categoryId.value)
+                .set(DELETE_CATEGORY.DELETED_BY, deleteBy.value)
+                .returning().fetchOne()?.categoryId
+        }
+    private fun CategoriesRecord.toRecord() =
+        CategoryRecord(
+            this.categoryId, this.groupId, this.categoryName, this.categoryRemarks, this.createdBy, this.changedBy
+        )
 }
 
-data class CategoriesRecord(
+data class CategoryRecord(
     val categoryId: UUID,
+    val groupId: UUID,
     val categoryName: String,
     val categoryRemarks: String,
     val createdBy: String,

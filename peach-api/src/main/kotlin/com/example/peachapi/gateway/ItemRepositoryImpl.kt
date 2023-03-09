@@ -2,9 +2,6 @@ package com.example.peachapi.gateway
 
 import arrow.core.Either
 import arrow.core.computations.ResultEffect.bind
-import arrow.core.computations.either
-import arrow.core.flatMap
-import com.example.peachapi.domain.ApiException
 import com.example.peachapi.domain.PeachDateTime
 import com.example.peachapi.domain.UnExpectError
 import com.example.peachapi.domain.category.CategoryId
@@ -13,36 +10,61 @@ import com.example.peachapi.domain.status.StatusId
 import com.example.peachapi.domain.user.UserId
 import com.example.peachapi.driver.peachdb.ItemDriver
 import com.example.peachapi.driver.peachdb.ItemRecord
-import com.google.firebase.internal.ApiClientUtils
-import org.jooq.User
+import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.springframework.stereotype.Component
 import java.util.*
 
 @Component
-class ItemRepositoryImpl(private val driver: ItemDriver): ItemRepository {
-    override fun getByCategoryId(categoryId: CategoryId): Either<ApiException, Items> =
+class ItemRepositoryImpl(private val driver: ItemDriver, private val dslContext: DSLContext) : ItemRepository {
+    override fun getByCategoryId(categoryId: CategoryId): Either<UnExpectError, Items> =
         driver.fetchByCategoryId(categoryId)
             .mapLeft { UnExpectError(it, it.message) }
             .map { it.toItems() }
 
-    override fun createItem(item: Item): Either<ApiException, Item> =
+    override fun createItem(item: Item): Either<UnExpectError, Item> =
         driver.createItem(item)
             .mapLeft { UnExpectError(it, it.message) }
             .map { item }
+
     override fun createAssignStatus(
         itemId: ItemId,
         statusId: StatusId,
         assignedBy: UserId
-    ): Either<ApiException, Item> =
-            driver.createAssignStatus(itemId, statusId, assignedBy)
-                .mapLeft { UnExpectError(it, it.message) }
+    ): Either<UnExpectError, Item> =
+        dslContext.transactionResult { config ->
+            val context = DSL.using(config)
+            driver.deleteAssignedStatus(itemId, context)
                 .map {
-                    driver.fetchById(itemId).bind()!!.toItem()
-                }
+                    driver.createAssignStatus(itemId, statusId, assignedBy, context)
+                }.toUnExpectError()
+                .map { driver.fetchById(itemId).bind()!!.toItem() }
+        }
 
-    override suspend fun existByUserId(userId: UserId, itemId: ItemId): Either<ApiException, Boolean> =
-        driver.existByUserId(userId, itemId)
-            .mapLeft { UnExpectError(it, it.message) }
+    suspend fun deleteAssignStatus(itemId: ItemId): Either<UnExpectError, Item> =
+        dslContext.transactionResult { config ->
+            val context = DSL.using(config)
+            driver.deleteAssignedStatus(itemId, context).toUnExpectError()
+                .map { driver.fetchById(itemId).bind()!!.toItem() }
+        }
+
+    override suspend fun existByUserId(userId: UserId, itemId: ItemId): Either<UnExpectError, Boolean> =
+        driver.existByUserId(userId, itemId).toUnExpectError()
+
+    override suspend fun update(
+        itemId: ItemId,
+        itemName: ItemName,
+        itemRemarks: ItemRemarks,
+        changedBy: UserId
+    ): Either<UnExpectError, ItemId> =
+        driver.update(itemId, itemName, itemRemarks, changedBy)
+            .toUnExpectError()
+            .map { ItemId(it!!) }
+
+    override suspend fun delete(itemId: ItemId, userId: UserId): Either<UnExpectError, ItemId> =
+        driver.delete(itemId, userId)
+            .toUnExpectError()
+            .map { ItemId(it!!) }
 
     private fun List<ItemRecord>.toItems(): Items =
         Items(

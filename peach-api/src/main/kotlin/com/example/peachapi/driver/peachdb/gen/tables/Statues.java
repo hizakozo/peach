@@ -17,7 +17,7 @@ import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row10;
+import org.jooq.Row8;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -88,16 +88,6 @@ public class Statues extends TableImpl<StatuesRecord> {
      * The column <code>public.statues.changed_by</code>.
      */
     public final TableField<StatuesRecord, String> CHANGED_BY = createField(DSL.name("changed_by"), SQLDataType.VARCHAR(100).nullable(false), this, "");
-
-    /**
-     * The column <code>public.statues.deleted_by</code>.
-     */
-    public final TableField<StatuesRecord, String> DELETED_BY = createField(DSL.name("deleted_by"), SQLDataType.VARCHAR(100).defaultValue(DSL.field("NULL::character varying", SQLDataType.VARCHAR)), this, "");
-
-    /**
-     * The column <code>public.statues.deleted_at</code>.
-     */
-    public final TableField<StatuesRecord, LocalDateTime> DELETED_AT = createField(DSL.name("deleted_at"), SQLDataType.LOCALDATETIME(6), this, "");
 
     private Statues(Name alias, Table<StatuesRecord> aliased) {
         this(alias, aliased, null);
@@ -183,11 +173,11 @@ public class Statues extends TableImpl<StatuesRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row10 type methods
+    // Row8 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row10<UUID, UUID, String, String, LocalDateTime, String, LocalDateTime, String, String, LocalDateTime> fieldsRow() {
-        return (Row10) super.fieldsRow();
+    public Row8<UUID, UUID, String, String, LocalDateTime, String, LocalDateTime, String> fieldsRow() {
+        return (Row8) super.fieldsRow();
     }
 }

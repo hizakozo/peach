@@ -22,28 +22,29 @@ class Router {
         path("/v1").nest {
             POST("/groups", handler::create)
             GET("/groups", handler::getGroups)
-            GET("/group/{groupId}/categories", handler::getCategories)
+            GET("/groups/{groupId}/categories", handler::getCategories)
         }
     }
     @Bean
     fun categoryRoutes(handler: CategoriesController) = coRouter {
         path("/v1").nest {
             POST("/categories", handler::create)
-            GET("/category/{categoryId}/items", handler::getItems)
-            GET("/category/{categoryId}/statuses", handler::getStatues)
+            GET("/categories/{categoryId}/items", handler::getItems)
+            GET("/categories/{categoryId}/statuses", handler::getStatues)
         }
     }
     @Bean
     fun itemsRoutes(handler: ItemController) = coRouter {
         path("/v1").nest {
             POST("/items", handler::createItem)
-            POST("/item/{itemId}/assignStatus", handler::assignStatus)
+            POST("/items/{itemId}/assignStatus", handler::assignStatus)
         }
     }
     @Bean
     fun statusRoutes(handler: StatusController) = coRouter {
         path("/v1").nest {
             POST("/statuses", handler::create)
+            PUT("/statuses/{statusId}", handler::update)
         }
     }
 }

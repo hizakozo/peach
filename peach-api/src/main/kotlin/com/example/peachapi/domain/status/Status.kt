@@ -20,7 +20,7 @@ data class Status(
                 StatusId(UUID.randomUUID()),
                 categoryId,
                 StatusName(name),
-                StatusColor(color),
+                if (color.isEmpty()) StatusColor("#FFFFFF") else StatusColor(color),
                 createBy,
                 createBy
             )

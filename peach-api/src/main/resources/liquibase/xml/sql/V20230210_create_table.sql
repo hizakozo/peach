@@ -12,6 +12,15 @@ CREATE TABLE IF NOT EXISTS groups
     PRIMARY KEY (group_id)
 );
 
+CREATE TABLE IF NOT EXISTS delete_group
+(
+    group_id   uuid                                   NOT NULL,
+    deleted_at timestamp    DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    deleted_by varchar(100) DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    PRIMARY KEY (group_id),
+    FOREIGN KEY (group_id) REFERENCES groups (group_id)
+);
+
 CREATE TABLE IF NOT EXISTS group_entry_qualifications
 (
     group_id        uuid NOT NULL,
@@ -43,6 +52,15 @@ CREATE TABLE IF NOT EXISTS categories
     FOREIGN KEY (group_id) REFERENCES groups (group_id)
 );
 
+CREATE TABLE IF NOT EXISTS delete_category
+(
+    category_id uuid                                   NOT NULL,
+    deleted_at  timestamp    DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    deleted_by  varchar(100) DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    PRIMARY KEY (category_id),
+    FOREIGN KEY (category_id) REFERENCES categories (category_id)
+);
+
 CREATE TABLE IF NOT EXISTS items
 (
     item_id      uuid                                   NOT NULL,
@@ -53,12 +71,18 @@ CREATE TABLE IF NOT EXISTS items
     created_by   varchar(100)                           NOT NULL,
     changed_at   timestamp    DEFAULT CURRENT_TIMESTAMP NOT NULL,
     changed_by   varchar(100)                           NOT NULL,
-    deleted_by   varchar(100) DEFAULT null,
-    deleted_at   timestamp    DEFAULT null,
     PRIMARY KEY (item_id),
     FOREIGN KEY (category_id) REFERENCES categories (category_id)
 );
 
+CREATE TABLE IF NOT EXISTS delete_item
+(
+    item_id    uuid                                   NOT NULL,
+    deleted_at timestamp    DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    deleted_by varchar(100) DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    PRIMARY KEY (item_id),
+    FOREIGN KEY (item_id) REFERENCES items (item_id)
+);
 CREATE TABLE IF NOT EXISTS statues
 (
     status_id    uuid                                   NOT NULL,
@@ -69,21 +93,28 @@ CREATE TABLE IF NOT EXISTS statues
     created_by   varchar(100)                           NOT NULL,
     changed_at   timestamp    DEFAULT CURRENT_TIMESTAMP NOT NULL,
     changed_by   varchar(100)                           NOT NULL,
-    deleted_by   varchar(100) DEFAULT null,
-    deleted_at   timestamp    DEFAULT null,
     PRIMARY KEY (status_id),
     FOREIGN KEY (category_id) REFERENCES categories (category_id)
 );
 
-CREATE TABLE IF NOT EXISTS item_statues
+CREATE TABLE IF NOT EXISTS delete_status
 (
-    item_id    uuid                                NOT NULL,
-    status_id  uuid                                NOT NULL,
-    created_at timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    created_by varchar(100)                        NOT NULL,
-    changed_at timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    changed_by varchar(100)                        NOT NULL,
+    status_id  uuid                                   NOT NULL,
+    deleted_at timestamp    DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    deleted_by varchar(100) DEFAULT CURRENT_TIMESTAMP NOT NULL,
     PRIMARY KEY (status_id),
+    UNIQUE (status_id),
+    FOREIGN KEY (status_id) REFERENCES statues (status_id)
+);
+
+CREATE TABLE IF NOT EXISTS assigned_status
+(
+    item_id     uuid                                NOT NULL,
+    status_id   uuid                                NOT NULL,
+    assigned_by varchar(100)                        NOT NULL,
+    assigned_at timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    PRIMARY KEY (item_id),
+    UNIQUE (item_id),
     FOREIGN KEY (item_id) REFERENCES items (item_id),
     FOREIGN KEY (status_id) REFERENCES statues (status_id)
 );

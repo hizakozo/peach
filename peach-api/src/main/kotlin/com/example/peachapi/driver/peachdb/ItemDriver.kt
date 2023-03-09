@@ -2,8 +2,11 @@ package com.example.peachapi.driver.peachdb
 
 import arrow.core.Either
 import com.example.peachapi.domain.category.CategoryId
+import com.example.peachapi.domain.group.GroupId
 import com.example.peachapi.domain.item.Item
 import com.example.peachapi.domain.item.ItemId
+import com.example.peachapi.domain.item.ItemName
+import com.example.peachapi.domain.item.ItemRemarks
 import com.example.peachapi.domain.status.StatusId
 import com.example.peachapi.domain.user.UserId
 import org.springframework.stereotype.Component
@@ -11,6 +14,7 @@ import com.example.peachapi.driver.peachdb.gen.Tables.*
 import com.example.peachapi.driver.peachdb.gen.tables.Categories
 import com.example.peachapi.driver.peachdb.gen.tables.Groups
 import com.example.peachapi.driver.peachdb.gen.tables.UserGroups
+import com.example.peachapi.driver.peachdb.gen.tables.records.ItemsRecord
 import org.jooq.*
 import org.jooq.impl.DSL.lateral
 import org.jooq.impl.DSL.select
@@ -22,17 +26,10 @@ import java.util.*
 @Component
 class ItemDriver(private val dsl: DSLContext) {
     private fun selectBase(): SelectOnConditionStep<Record8<UUID, UUID, UUID, String, String, String, String, LocalDateTime>> {
-        val ONE_ASSIGNED_STATUS = lateral(
-            select(ASSIGN_STATUS.ITEM_ID, ASSIGN_STATUS.STATUS_ID)
-                .from(ASSIGN_STATUS)
-                .where(ASSIGN_STATUS.ITEM_ID.eq(ITEMS.ITEM_ID))
-                .orderBy(ASSIGN_STATUS.ASSIGNED_AT.desc())
-                .limit(1)
-        ).asTable(ASSIGN_STATUS)
-        return dsl.select(ITEMS.ITEM_ID, ITEMS.CATEGORY_ID, ONE_ASSIGNED_STATUS.field(1, SQLDataType.UUID), ITEMS.ITEM_NAME, ITEMS.ITEM_REMARKS, ITEMS.CREATED_BY, ITEMS.CHANGED_BY, ITEMS.CREATED_AT)
+        return dsl.select(ITEMS.ITEM_ID, ITEMS.CATEGORY_ID, ASSIGNED_STATUS.STATUS_ID, ITEMS.ITEM_NAME, ITEMS.ITEM_REMARKS, ITEMS.CREATED_BY, ITEMS.CHANGED_BY, ITEMS.CREATED_AT)
             .from(ITEMS)
-            .leftOuterJoin(ONE_ASSIGNED_STATUS)
-            .on(ONE_ASSIGNED_STATUS.field(0, SQLDataType.UUID)?.eq(ITEMS.ITEM_ID))
+            .leftOuterJoin(ASSIGNED_STATUS)
+            .on(ASSIGNED_STATUS.ITEM_ID.eq(ITEMS.ITEM_ID))
     }
     fun fetchByCategoryId(categoryId: CategoryId): Either<Throwable, List<ItemRecord>> =
         Either.catch {
@@ -58,12 +55,24 @@ class ItemDriver(private val dsl: DSLContext) {
                 .set(ITEMS.CHANGED_BY, item.changedBy.value)
                 .execute()
         }
-    fun createAssignStatus(itemId: ItemId, statusId: StatusId, assignedBy: UserId): Either<Throwable, Unit> =
+    fun createAssignStatus(itemId: ItemId, statusId: StatusId, assignedBy: UserId, context: DSLContext): Either<Throwable, Unit> =
         Either.catch {
-            dsl.insertInto(ASSIGN_STATUS)
-                .set(ASSIGN_STATUS.ITEM_ID, itemId.value)
-                .set(ASSIGN_STATUS.STATUS_ID, statusId.value)
-                .set(ASSIGN_STATUS.ASSIGNED_BY, assignedBy.value)
+            context.insertInto(ASSIGNED_STATUS)
+                .set(ASSIGNED_STATUS.ITEM_ID, itemId.value)
+                .set(ASSIGNED_STATUS.STATUS_ID, statusId.value)
+                .set(ASSIGNED_STATUS.ASSIGNED_BY, assignedBy.value)
+                .execute()
+        }
+    fun deleteAssignedStatus(itemId: ItemId, context: DSLContext): Either<Throwable, UUID?> =
+        Either.catch {
+            context.delete(ASSIGNED_STATUS)
+                .where(ASSIGNED_STATUS.ITEM_ID.eq(itemId.value))
+                .returning().fetchOne()?.itemId
+        }
+    fun deleteAssignedStatusByStatusId(statusId: StatusId, context: DSLContext): Either<Throwable, Unit> =
+        Either.catch {
+            context.delete(ASSIGNED_STATUS)
+                .where(ASSIGNED_STATUS.STATUS_ID.eq(statusId.value))
                 .execute()
         }
     fun existByUserId(userId: UserId, itemId: ItemId): Either<Throwable, Boolean> =
@@ -76,6 +85,22 @@ class ItemDriver(private val dsl: DSLContext) {
                     .innerJoin(USER_GROUPS).on(GROUPS.GROUP_ID.eq(USER_GROUPS.GROUP_ID))
                     .where(USER_GROUPS.USER_ID.eq(userId.value).and(ITEMS.ITEM_ID.eq(itemId.value)))
             )
+        }
+    suspend fun update(itemId: ItemId, itemName: ItemName, itemRemarks: ItemRemarks, changedBy: UserId): Either<Throwable, UUID?> =
+        Either.catch {
+            dsl.update(ITEMS)
+                .set(ITEMS.ITEM_NAME, itemName.value)
+                .set(ITEMS.ITEM_REMARKS, itemRemarks.value)
+                .set(ITEMS.CHANGED_BY, changedBy.value)
+                .where(ITEMS.ITEM_ID.eq(itemId.value))
+                .returning().fetchOne()?.itemId
+        }
+    suspend fun delete(itemId: ItemId, deleteBy: UserId): Either<Throwable, UUID?> =
+        Either.catch {
+            dsl.insertInto(DELETE_ITEM)
+                .set(DELETE_ITEM.ITEM_ID, itemId.value)
+                .set(DELETE_ITEM.DELETED_BY, deleteBy.value)
+                .returning().fetchOne()?.itemId
         }
 }
 

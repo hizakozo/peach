@@ -1,30 +1,25 @@
 package com.example.peachapi.gateway
 
 import arrow.core.Either
-import com.example.peachapi.domain.ApiException
-import com.example.peachapi.domain.NotFoundDataException
 import com.example.peachapi.domain.UnExpectError
-import com.example.peachapi.domain.category.Categories
-import com.example.peachapi.domain.category.Category
-import com.example.peachapi.domain.category.CategoryId
-import com.example.peachapi.domain.category.CategoryRepository
+import com.example.peachapi.domain.category.*
 import com.example.peachapi.domain.group.GroupId
 import com.example.peachapi.domain.status.StatusId
 import com.example.peachapi.domain.user.UserId
 import com.example.peachapi.driver.peachdb.CategoryDbDriver
-import org.jooq.User
+import com.example.peachapi.driver.peachdb.CategoryRecord
 import org.springframework.stereotype.Component
 
 @Component
 class CategoryRepositoryImpl(private val dbDriver: CategoryDbDriver): CategoryRepository {
-    override fun create(category: Category): Either<ApiException, Category> =
+    override fun create(category: Category): Either<UnExpectError, Category> =
         dbDriver.create(category)
-            .mapLeft { UnExpectError(it, it.message) }
+            .toUnExpectError()
             .map { category }
 
-    override fun getCategories(groupId: GroupId, userId: UserId): Either<ApiException, Categories> =
+    override fun getCategories(groupId: GroupId, userId: UserId): Either<UnExpectError, Categories> =
         dbDriver.getCategories(groupId, userId)
-            .mapLeft { UnExpectError(it, it.message) }
+            .toUnExpectError()
             .map { Categories(
                 it.map { record ->
                     Category.of(
@@ -38,11 +33,33 @@ class CategoryRepositoryImpl(private val dbDriver: CategoryDbDriver): CategoryRe
                 }
             ) }
 
-    override suspend fun existsByUserID(userId: UserId, categoryId: CategoryId): Either<ApiException, Boolean> =
+    override suspend fun existsByUserID(userId: UserId, categoryId: CategoryId): Either<UnExpectError, Boolean> =
         dbDriver.existByUserId(userId, categoryId)
-            .mapLeft { UnExpectError(it, it.message) }
+            .toUnExpectError()
 
-    override suspend fun existByStatusId(userId: UserId, statusId: StatusId): Either<ApiException, Boolean> =
+    override suspend fun existByStatusId(userId: UserId, statusId: StatusId): Either<UnExpectError, Boolean> =
         dbDriver.existByStatusId(userId, statusId)
-            .mapLeft { UnExpectError(it, it.message) }
+            .toUnExpectError()
+
+    override suspend fun delete(categoryId: CategoryId, userId: UserId): Either<UnExpectError, CategoryId> =
+        dbDriver.delete(categoryId, userId).toUnExpectError()
+            .map { CategoryId(it!!) }
+
+    override suspend fun update(
+        categoryId: CategoryId,
+        categoryName: CategoryName,
+        categoryRemarks: CategoryRemarks,
+        changedBy: UserId
+    ): Either<UnExpectError, Category> =
+        dbDriver.update(categoryId, categoryName, categoryRemarks, changedBy).toUnExpectError()
+            .map { record -> record!!.toCategory() }
+    private fun CategoryRecord.toCategory() =
+        Category.of(
+            this.categoryId,
+            this.groupId,
+            this.categoryName,
+            this.categoryRemarks,
+            UserId(this.createdBy),
+            UserId(this.changedBy)
+        )
 }

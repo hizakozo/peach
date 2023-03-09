@@ -4,10 +4,14 @@
 package com.example.peachapi.driver.peachdb.gen;
 
 
-import com.example.peachapi.driver.peachdb.gen.tables.AssignStatus;
+import com.example.peachapi.driver.peachdb.gen.tables.AssignedStatus;
 import com.example.peachapi.driver.peachdb.gen.tables.Categories;
 import com.example.peachapi.driver.peachdb.gen.tables.Databasechangelog;
 import com.example.peachapi.driver.peachdb.gen.tables.Databasechangeloglock;
+import com.example.peachapi.driver.peachdb.gen.tables.DeleteCategory;
+import com.example.peachapi.driver.peachdb.gen.tables.DeleteGroup;
+import com.example.peachapi.driver.peachdb.gen.tables.DeleteItem;
+import com.example.peachapi.driver.peachdb.gen.tables.DeleteStatus;
 import com.example.peachapi.driver.peachdb.gen.tables.GroupEntryQualifications;
 import com.example.peachapi.driver.peachdb.gen.tables.Groups;
 import com.example.peachapi.driver.peachdb.gen.tables.Items;
@@ -36,9 +40,9 @@ public class Public extends SchemaImpl {
     public static final Public PUBLIC = new Public();
 
     /**
-     * The table <code>public.assign_status</code>.
+     * The table <code>public.assigned_status</code>.
      */
-    public final AssignStatus ASSIGN_STATUS = AssignStatus.ASSIGN_STATUS;
+    public final AssignedStatus ASSIGNED_STATUS = AssignedStatus.ASSIGNED_STATUS;
 
     /**
      * The table <code>public.categories</code>.
@@ -54,6 +58,26 @@ public class Public extends SchemaImpl {
      * The table <code>public.databasechangeloglock</code>.
      */
     public final Databasechangeloglock DATABASECHANGELOGLOCK = Databasechangeloglock.DATABASECHANGELOGLOCK;
+
+    /**
+     * The table <code>public.delete_category</code>.
+     */
+    public final DeleteCategory DELETE_CATEGORY = DeleteCategory.DELETE_CATEGORY;
+
+    /**
+     * The table <code>public.delete_group</code>.
+     */
+    public final DeleteGroup DELETE_GROUP = DeleteGroup.DELETE_GROUP;
+
+    /**
+     * The table <code>public.delete_item</code>.
+     */
+    public final DeleteItem DELETE_ITEM = DeleteItem.DELETE_ITEM;
+
+    /**
+     * The table <code>public.delete_status</code>.
+     */
+    public final DeleteStatus DELETE_STATUS = DeleteStatus.DELETE_STATUS;
 
     /**
      * The table <code>public.group_entry_qualifications</code>.
@@ -96,10 +120,14 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.<Table<?>>asList(
-            AssignStatus.ASSIGN_STATUS,
+            AssignedStatus.ASSIGNED_STATUS,
             Categories.CATEGORIES,
             Databasechangelog.DATABASECHANGELOG,
             Databasechangeloglock.DATABASECHANGELOGLOCK,
+            DeleteCategory.DELETE_CATEGORY,
+            DeleteGroup.DELETE_GROUP,
+            DeleteItem.DELETE_ITEM,
+            DeleteStatus.DELETE_STATUS,
             GroupEntryQualifications.GROUP_ENTRY_QUALIFICATIONS,
             Groups.GROUPS,
             Items.ITEMS,

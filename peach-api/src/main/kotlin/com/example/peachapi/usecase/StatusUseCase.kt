@@ -8,9 +8,7 @@ import com.example.peachapi.domain.category.CategoryId
 import com.example.peachapi.domain.category.CategoryRepository
 import com.example.peachapi.domain.group.GroupId
 import com.example.peachapi.domain.group.GroupRepository
-import com.example.peachapi.domain.status.Status
-import com.example.peachapi.domain.status.StatusRepository
-import com.example.peachapi.domain.status.Statuses
+import com.example.peachapi.domain.status.*
 import com.example.peachapi.domain.user.UserId
 import org.springframework.stereotype.Component
 
@@ -26,4 +24,21 @@ class StatusUseCase(private val statusRepository: StatusRepository, private val 
                     Either.Left(PermissionException(null, "unavailable category"))
                 }
             }
+
+    suspend fun update(c: StatusUpdateCommand): Either<ApiException, Status> =
+        categoryRepository.existByStatusId(c.changedBy, c.statusId)
+            .flatMap {
+                if (it) {
+                    statusRepository.update(c.statusId, c.statusName, c.statusColor, c.changedBy)
+                } else {
+                    Either.Left(PermissionException(null, "unavailable category"))
+                }
+            }
 }
+
+data class StatusUpdateCommand(
+    val statusId: StatusId,
+    val statusName: StatusName,
+    val statusColor: StatusColor,
+    val changedBy: UserId,
+)

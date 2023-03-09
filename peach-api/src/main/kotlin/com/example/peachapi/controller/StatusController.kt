@@ -3,8 +3,9 @@ package com.example.peachapi.controller
 import com.example.peachapi.config.AuthenticatedUser
 import com.example.peachapi.domain.category.CategoryId
 import com.example.peachapi.domain.group.GroupId
-import com.example.peachapi.domain.status.Status
-import com.example.peachapi.domain.status.Statuses
+import com.example.peachapi.domain.item.ItemId
+import com.example.peachapi.domain.status.*
+import com.example.peachapi.usecase.StatusUpdateCommand
 import com.example.peachapi.usecase.StatusUseCase
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.reactive.asFlow
@@ -43,10 +44,37 @@ class StatusController(private val statusUseCase: StatusUseCase) {
                     )
             }
         }
+
+    suspend fun update(request: ServerRequest): ServerResponse =
+        userContext().let { context ->
+            val user = context.authentication.details as AuthenticatedUser
+            val statusId = StatusId(UUID.fromString(request.pathVariable("statusId")))
+            request.bodyToMono<UpdateStatusRequest>().awaitSingle().let { requestBody ->
+                val command = StatusUpdateCommand(
+                    statusId,
+                    StatusName(requestBody.statusName),
+                    StatusColor(requestBody.statusColor),
+                    user.userId
+                )
+                statusUseCase.update(command)
+                    .fold(
+                        { it.toResponse() },
+                        {
+                            ServerResponse
+                                .ok()
+                                .bodyValueAndAwait(it.toResponse())
+                        }
+                    )
+            }
+        }
 }
 
 data class CreateStatusRequest(
     val categoryId: String,
+    val statusName: String,
+    val statusColor: String
+)
+data class UpdateStatusRequest(
     val statusName: String,
     val statusColor: String
 )
