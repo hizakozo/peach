@@ -13,7 +13,10 @@ import com.example.peachapi.domain.user.UserId
 import org.springframework.stereotype.Component
 
 @Component
-class StatusUseCase(private val statusRepository: StatusRepository, private val categoryRepository: CategoryRepository) {
+class StatusUseCase(
+    private val statusRepository: StatusRepository,
+    private val categoryRepository: CategoryRepository
+) {
 
     suspend fun create(userId: UserId, status: Status): Either<ApiException, Status> =
         categoryRepository.existsByUserID(userId, status.categoryId)
@@ -31,7 +34,17 @@ class StatusUseCase(private val statusRepository: StatusRepository, private val 
                 if (it) {
                     statusRepository.update(c.statusId, c.statusName, c.statusColor, c.changedBy)
                 } else {
-                    Either.Left(PermissionException(null, "unavailable category"))
+                    Either.Left(PermissionException(null, "unavailable status"))
+                }
+            }
+
+    suspend fun delete(statusId: StatusId, userId: UserId): Either<ApiException, StatusId> =
+        categoryRepository.existByStatusId(userId, statusId)
+            .flatMap {
+                if (it) {
+                    statusRepository.delete(statusId, userId)
+                } else {
+                    Either.Left(PermissionException(null, "unavailable status"))
                 }
             }
 }

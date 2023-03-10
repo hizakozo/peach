@@ -22,6 +22,8 @@ class Router {
         path("/v1").nest {
             POST("/groups", handler::create)
             GET("/groups", handler::getGroups)
+            DELETE("/groups/{groupId}", handler::delete)
+            PUT("/groups/{groupId}", handler::update)
             GET("/groups/{groupId}/categories", handler::getCategories)
         }
     }
@@ -29,6 +31,8 @@ class Router {
     fun categoryRoutes(handler: CategoriesController) = coRouter {
         path("/v1").nest {
             POST("/categories", handler::create)
+            DELETE("/categories/{categoryId}", handler::delete)
+            PUT("/categories/{categoryId}", handler::update)
             GET("/categories/{categoryId}/items", handler::getItems)
             GET("/categories/{categoryId}/statuses", handler::getStatues)
         }
@@ -37,7 +41,10 @@ class Router {
     fun itemsRoutes(handler: ItemController) = coRouter {
         path("/v1").nest {
             POST("/items", handler::createItem)
+            DELETE("/items/{itemId}", handler::delete)
+            PUT("/items/{itemId}", handler::update)
             POST("/items/{itemId}/assignStatus", handler::assignStatus)
+            POST("/items/{itemId}/unAssignStatus", handler::unAssignStatus)
         }
     }
     @Bean
@@ -45,6 +52,7 @@ class Router {
         path("/v1").nest {
             POST("/statuses", handler::create)
             PUT("/statuses/{statusId}", handler::update)
+            DELETE("/statuses/{statusId}", handler::delete)
         }
     }
 }

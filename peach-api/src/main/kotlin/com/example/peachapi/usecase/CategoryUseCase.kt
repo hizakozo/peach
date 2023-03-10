@@ -4,10 +4,7 @@ import arrow.core.Either
 import arrow.core.flatMap
 import com.example.peachapi.domain.ApiException
 import com.example.peachapi.domain.PermissionException
-import com.example.peachapi.domain.category.Categories
-import com.example.peachapi.domain.category.Category
-import com.example.peachapi.domain.category.CategoryId
-import com.example.peachapi.domain.category.CategoryRepository
+import com.example.peachapi.domain.category.*
 import com.example.peachapi.domain.group.GroupId
 import com.example.peachapi.domain.group.GroupRepository
 import com.example.peachapi.domain.item.ItemRepository
@@ -15,6 +12,7 @@ import com.example.peachapi.domain.item.Items
 import com.example.peachapi.domain.status.StatusRepository
 import com.example.peachapi.domain.status.Statuses
 import com.example.peachapi.domain.user.UserId
+import com.google.protobuf.Api
 import org.springframework.stereotype.Component
 
 @Component
@@ -54,4 +52,34 @@ class CategoryUseCase(
                     Either.Left(PermissionException(null, "unavailable category"))
                 }
             }
+    suspend fun update(command: UpdateCommand): Either<ApiException, Category> =
+        categoryRepository.existsByUserID(command.changedBy, command.categoryId)
+            .flatMap {
+                if (it) {
+                    categoryRepository.update(command.categoryId, command.categoryName, command.categoryRemarks, command.changedBy)
+                } else {
+                    Either.Left(PermissionException(null, "unavailable category"))
+                }
+            }
+    suspend fun delete(command: DeleteCommand): Either<ApiException, CategoryId> =
+        categoryRepository.existsByUserID(command.deletedBy, command.categoryId)
+            .flatMap {
+                if (it) {
+                    categoryRepository.delete(command.categoryId, command.deletedBy)
+                } else {
+                    Either.Left(PermissionException(null, "unavailable category"))
+                }
+            }
 }
+
+data class UpdateCommand(
+    val categoryId: CategoryId,
+    val categoryName: CategoryName,
+    val categoryRemarks: CategoryRemarks,
+    val changedBy: UserId
+)
+
+data class DeleteCommand(
+    val deletedBy: UserId,
+    val categoryId: CategoryId
+)

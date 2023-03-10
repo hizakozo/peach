@@ -14,4 +14,6 @@ interface ItemRepository {
     suspend fun existByUserId(userId: UserId, itemId: ItemId): Either<UnExpectError, Boolean>
     suspend fun update(itemId: ItemId, itemName: ItemName, itemRemarks: ItemRemarks, changedBy: UserId): Either<UnExpectError, ItemId>
     suspend fun delete(itemId: ItemId, userId: UserId): Either<UnExpectError, ItemId>
+    suspend fun getById(itemId: ItemId): Either<UnExpectError, Item?>
+    suspend fun deleteAssignStatus(itemId: ItemId): Either<UnExpectError, Item>
 }

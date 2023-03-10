@@ -4,10 +4,9 @@ import arrow.core.computations.either
 import com.example.peachapi.config.AuthenticatedUser
 import com.example.peachapi.domain.ApiException
 import com.example.peachapi.domain.category.Categories
-import com.example.peachapi.domain.group.Group
-import com.example.peachapi.domain.group.GroupId
-import com.example.peachapi.domain.group.Groups
+import com.example.peachapi.domain.group.*
 import com.example.peachapi.usecase.GroupUseCase
+import com.example.peachapi.usecase.UpdateGroupCommand
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
@@ -23,10 +22,11 @@ import java.util.*
 class GroupsController(private val groupUseCase: GroupUseCase) {
     private suspend fun userContext() = ReactiveSecurityContextHolder.getContext()
         .asFlow().single()
+
     suspend fun create(request: ServerRequest): ServerResponse =
         userContext().let { context ->
             val user = context.authentication.details as AuthenticatedUser
-            request.bodyToMono<CreateGroupRequest>().awaitSingle().let {request ->
+            request.bodyToMono<CreateGroupRequest>().awaitSingle().let { request ->
                 either<ApiException, Group> {
                     val group = Group.newGroup(
                         request.groupName,
@@ -35,8 +35,8 @@ class GroupsController(private val groupUseCase: GroupUseCase) {
                     )
                     groupUseCase.create(group).bind()
                 }.fold(
-                    {it.toResponse()},
-                    {ServerResponse.ok().bodyValueAndAwait(it.toResponse())}
+                    { it.toResponse() },
+                    { ServerResponse.ok().bodyValueAndAwait(it.toResponse()) }
                 )
             }
         }
@@ -44,11 +44,11 @@ class GroupsController(private val groupUseCase: GroupUseCase) {
     suspend fun getGroups(request: ServerRequest): ServerResponse =
         userContext().let { u ->
             val user = u.authentication.details as AuthenticatedUser
-            either<ApiException, Groups>{
+            either<ApiException, Groups> {
                 groupUseCase.getGroups(user.userId).bind()
             }.fold(
-                {it.toResponse()},
-                {ServerResponse.ok().bodyValueAndAwait(it.toResponse())}
+                { it.toResponse() },
+                { ServerResponse.ok().bodyValueAndAwait(it.toResponse()) }
             )
         }
 
@@ -58,23 +58,59 @@ class GroupsController(private val groupUseCase: GroupUseCase) {
             val groupId = GroupId(UUID.fromString(request.pathVariable("groupId")))
             groupUseCase.getCategories(groupId, user.userId)
                 .fold(
-                    {it.toResponse()},
-                    {ServerResponse.ok().bodyValueAndAwait(it.toResponse())}
+                    { it.toResponse() },
+                    { ServerResponse.ok().bodyValueAndAwait(it.toResponse()) }
                 )
+        }
+
+    suspend fun update(request: ServerRequest): ServerResponse =
+        userContext().let { context ->
+            val user = context.authentication.details as AuthenticatedUser
+            request.bodyToMono<CreateGroupRequest>().awaitSingle().let { r ->
+                val groupId = GroupId(UUID.fromString(request.pathVariable("groupId")))
+                either<ApiException, Group> {
+                    val command = UpdateGroupCommand(
+                        groupId,
+                        GroupName(r.groupName),
+                        GroupRemarks(r.groupRemarks ?: ""),
+                        user.userId
+                    )
+                    groupUseCase.update(command).bind()
+                }.fold(
+                    { it.toResponse() },
+                    { ServerResponse.ok().bodyValueAndAwait(it.toResponse()) }
+                )
+            }
+        }
+
+    suspend fun delete(request: ServerRequest): ServerResponse =
+        userContext().let { context ->
+            val user = context.authentication.details as AuthenticatedUser
+            val groupId = GroupId(UUID.fromString(request.pathVariable("groupId")))
+            either<ApiException, GroupId> {
+                groupUseCase.delete(user.userId, groupId).bind()
+            }.fold(
+                { it.toResponse() },
+                { ServerResponse.ok().bodyValueAndAwait(GroupIdResponse(it.value)) }
+            )
         }
 }
 
 fun Group.toResponse(): GroupResponse =
     GroupResponse(this.groupId.value, this.groupName.value, this.groupRemarks?.value)
+
 data class CreateGroupRequest(
     val groupName: String,
     val groupRemarks: String?
 )
+
 data class GroupResponse(
     val groupId: UUID,
     val groupName: String,
     val groupRemarks: String?
 )
+
+data class GroupIdResponse(val groupId: UUID)
 
 fun Groups.toResponse(): GroupsResponse =
     GroupsResponse(
@@ -84,12 +120,15 @@ fun Groups.toResponse(): GroupsResponse =
             )
         }
     )
+
 data class GroupsResponse(
     val groups: List<GroupResponse>
 )
+
 data class CategoriesResponse(
     val categories: List<CategoryResponse>
 )
+
 fun Categories.toResponse() =
     CategoriesResponse(
         this.map {

@@ -41,7 +41,7 @@ class ItemRepositoryImpl(private val driver: ItemDriver, private val dslContext:
                 .map { driver.fetchById(itemId).bind()!!.toItem() }
         }
 
-    suspend fun deleteAssignStatus(itemId: ItemId): Either<UnExpectError, Item> =
+    override suspend fun deleteAssignStatus(itemId: ItemId): Either<UnExpectError, Item> =
         dslContext.transactionResult { config ->
             val context = DSL.using(config)
             driver.deleteAssignedStatus(itemId, context).toUnExpectError()
@@ -65,6 +65,11 @@ class ItemRepositoryImpl(private val driver: ItemDriver, private val dslContext:
         driver.delete(itemId, userId)
             .toUnExpectError()
             .map { ItemId(it!!) }
+
+    override suspend fun getById(itemId: ItemId): Either<UnExpectError, Item?> =
+        driver.fetchById(itemId)
+            .toUnExpectError()
+            .map { it?.toItem() }
 
     private fun List<ItemRecord>.toItems(): Items =
         Items(

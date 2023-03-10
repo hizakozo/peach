@@ -2,11 +2,10 @@ package com.example.peachapi.controller
 
 import com.example.peachapi.config.AuthenticatedUser
 import com.example.peachapi.domain.category.CategoryId
-import com.example.peachapi.domain.item.Item
-import com.example.peachapi.domain.item.ItemId
-import com.example.peachapi.domain.item.Items
+import com.example.peachapi.domain.item.*
 import com.example.peachapi.domain.status.StatusId
 import com.example.peachapi.usecase.ItemUseCase
+import com.example.peachapi.usecase.UpdateItemCommand
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
@@ -25,7 +24,7 @@ class ItemController(private val useCase: ItemUseCase) {
 
     suspend fun createItem(request: ServerRequest): ServerResponse =
         userContext().let { context ->
-            request.bodyToMono<CreateItemRequest>().awaitSingle().let {requestBody ->
+            request.bodyToMono<CreateItemRequest>().awaitSingle().let { requestBody ->
                 val user = context.authentication.details as AuthenticatedUser
                 val item = Item.newItem(
                     CategoryId(UUID.fromString(requestBody.categoryId)),
@@ -44,9 +43,10 @@ class ItemController(private val useCase: ItemUseCase) {
                     )
             }
         }
+
     suspend fun assignStatus(request: ServerRequest): ServerResponse =
         userContext().let { context ->
-            request.bodyToMono<AssignStatusRequest>().awaitSingle().let {requestBody ->
+            request.bodyToMono<AssignStatusRequest>().awaitSingle().let { requestBody ->
                 val user = context.authentication.details as AuthenticatedUser
                 val statusId = StatusId(UUID.fromString(requestBody.statusId))
                 val itemId = ItemId(UUID.fromString(request.pathVariable("itemId")))
@@ -61,6 +61,58 @@ class ItemController(private val useCase: ItemUseCase) {
                     )
             }
         }
+
+    suspend fun update(request: ServerRequest): ServerResponse =
+        userContext().let { context ->
+            request.bodyToMono<UpdateItemRequest>().awaitSingle().let { requestBody ->
+                val user = context.authentication.details as AuthenticatedUser
+                val itemId = ItemId(UUID.fromString(request.pathVariable("itemId")))
+                val command = UpdateItemCommand(
+                    itemId,
+                    ItemName(requestBody.itemName),
+                    ItemRemarks(requestBody.itemRemarks),
+                    user.userId
+                )
+                useCase.update(command)
+                    .fold(
+                        { it.toResponse() },
+                        {
+                            ServerResponse
+                                .ok()
+                                .bodyValueAndAwait(it.toResponse())
+                        }
+                    )
+            }
+        }
+
+    suspend fun delete(request: ServerRequest): ServerResponse =
+        userContext().let { context ->
+            val user = context.authentication.details as AuthenticatedUser
+            val itemId = ItemId(UUID.fromString(request.pathVariable("itemId")))
+            useCase.delete(itemId, user.userId)
+                .fold(
+                    { it.toResponse() },
+                    {
+                        ServerResponse
+                            .ok()
+                            .bodyValueAndAwait(ItemIdResponse(it.value))
+                    }
+                )
+        }
+    suspend fun unAssignStatus(request: ServerRequest): ServerResponse =
+        userContext().let { context ->
+            val user = context.authentication.details as AuthenticatedUser
+            val itemId = ItemId(UUID.fromString(request.pathVariable("itemId")))
+            useCase.unAssignStatus(itemId, user.userId)
+                .fold(
+                    { it.toResponse() },
+                    {
+                        ServerResponse
+                            .ok()
+                            .bodyValueAndAwait(it.toResponse())
+                    }
+                )
+        }
 }
 
 data class CreateItemRequest(
@@ -68,22 +120,32 @@ data class CreateItemRequest(
     val itemName: String,
     val itemRemarks: String
 )
+
+data class UpdateItemRequest(
+    val itemName: String,
+    val itemRemarks: String
+)
+
+data class ItemIdResponse(val itemId: UUID)
+
 data class AssignStatusRequest(
     val statusId: String
 )
+
 fun Items.toResponse(): ItemsResponse =
     ItemsResponse(
         this.map { it.toResponse() }
     )
 
-fun  Item.toResponse(): ItemResponse =
+fun Item.toResponse(): ItemResponse =
     ItemResponse(
         this.itemId.value.toString(),
-        if(this.statusId != null) this.statusId.value.toString() else "EMPTY_STATUS",
+        if (this.statusId != null) this.statusId.value.toString() else "EMPTY_STATUS",
         this.itemName.value,
         this.itemRemarks?.value,
         this.createdAt.value.toString()
     )
+
 data class ItemsResponse(
     val items: List<ItemResponse>
 )

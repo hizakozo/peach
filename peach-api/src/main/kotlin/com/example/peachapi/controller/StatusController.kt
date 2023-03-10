@@ -67,6 +67,21 @@ class StatusController(private val statusUseCase: StatusUseCase) {
                     )
             }
         }
+
+    suspend fun delete(request: ServerRequest): ServerResponse =
+        userContext().let { context ->
+            val user = context.authentication.details as AuthenticatedUser
+            val statusId = StatusId(UUID.fromString(request.pathVariable("statusId")))
+            statusUseCase.delete(statusId, user.userId)
+                .fold(
+                    { it.toResponse() },
+                    {
+                        ServerResponse
+                            .ok()
+                            .bodyValueAndAwait(StatusIdResponse(it.value))
+                    }
+                )
+        }
 }
 
 data class CreateStatusRequest(
@@ -74,6 +89,7 @@ data class CreateStatusRequest(
     val statusName: String,
     val statusColor: String
 )
+
 data class UpdateStatusRequest(
     val statusName: String,
     val statusColor: String
@@ -82,12 +98,14 @@ data class UpdateStatusRequest(
 data class StatusesResponse(
     val statuses: List<StatusResponse>
 )
+data class StatusIdResponse(val statusId: UUID)
 fun Statuses.toResponse() =
     StatusesResponse(
         this.list.map {
             it.toResponse()
         }
     )
+
 fun Status.toResponse() =
     StatusResponse(
         this.statusId.value.toString(),

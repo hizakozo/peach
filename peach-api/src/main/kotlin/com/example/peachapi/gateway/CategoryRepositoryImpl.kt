@@ -43,7 +43,7 @@ class CategoryRepositoryImpl(private val dbDriver: CategoryDbDriver): CategoryRe
 
     override suspend fun delete(categoryId: CategoryId, userId: UserId): Either<UnExpectError, CategoryId> =
         dbDriver.delete(categoryId, userId).toUnExpectError()
-            .map { CategoryId(it!!) }
+            .map { it!! }
 
     override suspend fun update(
         categoryId: CategoryId,

@@ -35,7 +35,7 @@ class CategoryDbDriver(private val dsl: DSLContext) {
     fun getCategories(groupId: GroupId, userId: UserId): Either<Throwable, List<CategoryRecord>> =
         Either.catch {
             dsl.select(
-                CATEGORIES.CATEGORY_ID, CATEGORIES.CATEGORY_NAME,
+                CATEGORIES.CATEGORY_ID, CATEGORIES.GROUP_ID, CATEGORIES.CATEGORY_NAME,
                 CATEGORIES.CATEGORY_REMARKS,
                 CATEGORIES.CREATED_BY, CATEGORIES.CHANGED_BY
             )
@@ -78,12 +78,12 @@ class CategoryDbDriver(private val dsl: DSLContext) {
                 .where(CATEGORIES.CATEGORY_ID.eq(categoryId.value))
                 .returning().fetchOne()?.toRecord()
         }
-    suspend fun delete(categoryId: CategoryId, deleteBy: UserId): Either<Throwable, UUID?> =
+    suspend fun delete(categoryId: CategoryId, deleteBy: UserId): Either<Throwable, CategoryId?> =
         Either.catch {
             dsl.insertInto(DELETE_CATEGORY)
                 .set(DELETE_CATEGORY.CATEGORY_ID, categoryId.value)
                 .set(DELETE_CATEGORY.DELETED_BY, deleteBy.value)
-                .returning().fetchOne()?.categoryId
+                .returning().fetchOne()?.let { CategoryId(it.categoryId) }
         }
     private fun CategoriesRecord.toRecord() =
         CategoryRecord(
