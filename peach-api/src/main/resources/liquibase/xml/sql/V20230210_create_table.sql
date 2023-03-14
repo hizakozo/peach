@@ -7,8 +7,6 @@ CREATE TABLE IF NOT EXISTS groups
     created_by    varchar(100)                           NOT NULL,
     changed_at    timestamp    DEFAULT CURRENT_TIMESTAMP NOT NULL,
     changed_by    varchar(100)                           NOT NULL,
-    deleted_by    varchar(100) DEFAULT null,
-    deleted_at    timestamp    DEFAULT null,
     PRIMARY KEY (group_id)
 );
 

@@ -62,7 +62,7 @@ public class DeleteItem extends TableImpl<DeleteItemRecord> {
     /**
      * The column <code>public.delete_item.deleted_by</code>.
      */
-    public final TableField<DeleteItemRecord, String> DELETED_BY = createField(DSL.name("deleted_by"), SQLDataType.VARCHAR(100).nullable(false), this, "");
+    public final TableField<DeleteItemRecord, String> DELETED_BY = createField(DSL.name("deleted_by"), SQLDataType.VARCHAR(100).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP", SQLDataType.VARCHAR)), this, "");
 
     private DeleteItem(Name alias, Table<DeleteItemRecord> aliased) {
         this(alias, aliased, null);

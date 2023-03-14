@@ -17,7 +17,7 @@ import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row9;
+import org.jooq.Row7;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -83,16 +83,6 @@ public class Groups extends TableImpl<GroupsRecord> {
      * The column <code>public.groups.changed_by</code>.
      */
     public final TableField<GroupsRecord, String> CHANGED_BY = createField(DSL.name("changed_by"), SQLDataType.VARCHAR(100).nullable(false), this, "");
-
-    /**
-     * The column <code>public.groups.deleted_by</code>.
-     */
-    public final TableField<GroupsRecord, String> DELETED_BY = createField(DSL.name("deleted_by"), SQLDataType.VARCHAR(100).defaultValue(DSL.field("NULL::character varying", SQLDataType.VARCHAR)), this, "");
-
-    /**
-     * The column <code>public.groups.deleted_at</code>.
-     */
-    public final TableField<GroupsRecord, LocalDateTime> DELETED_AT = createField(DSL.name("deleted_at"), SQLDataType.LOCALDATETIME(6), this, "");
 
     private Groups(Name alias, Table<GroupsRecord> aliased) {
         this(alias, aliased, null);
@@ -169,11 +159,11 @@ public class Groups extends TableImpl<GroupsRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row9 type methods
+    // Row7 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row9<UUID, String, String, LocalDateTime, String, LocalDateTime, String, String, LocalDateTime> fieldsRow() {
-        return (Row9) super.fieldsRow();
+    public Row7<UUID, String, String, LocalDateTime, String, LocalDateTime, String> fieldsRow() {
+        return (Row7) super.fieldsRow();
     }
 }

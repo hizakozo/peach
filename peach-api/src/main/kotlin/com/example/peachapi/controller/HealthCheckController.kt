@@ -15,6 +15,8 @@ import java.util.*
 class HealthCheckController {
 
     suspend fun healthCheck(request: ServerRequest): ServerResponse {
-        return ServerResponse.ok().bodyValueAndAwait("pong")
+        return ServerResponse.ok().bodyValueAndAwait(PongResponse("pong"))
     }
 }
+
+data class PongResponse(val value: String)

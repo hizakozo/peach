@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.jooq.Field;
-import org.jooq.Record2;
+import org.jooq.Record1;
 import org.jooq.Record4;
 import org.jooq.Row4;
 import org.jooq.impl.UpdatableRecordImpl;
@@ -85,8 +85,8 @@ public class AssignedStatusRecord extends UpdatableRecordImpl<AssignedStatusReco
     // -------------------------------------------------------------------------
 
     @Override
-    public Record2<UUID, LocalDateTime> key() {
-        return (Record2) super.key();
+    public Record1<UUID> key() {
+        return (Record1) super.key();
     }
 
     // -------------------------------------------------------------------------

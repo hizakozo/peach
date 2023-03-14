@@ -47,7 +47,7 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final UniqueKey<AssignedStatusRecord> ASSIGNED_STATUS_PKEY = Internal.createUniqueKey(AssignedStatus.ASSIGNED_STATUS, DSL.name("assigned_status_pkey"), new TableField[] { AssignedStatus.ASSIGNED_STATUS.ITEM_ID, AssignedStatus.ASSIGNED_STATUS.ASSIGNED_AT }, true);
+    public static final UniqueKey<AssignedStatusRecord> ASSIGNED_STATUS_PKEY = Internal.createUniqueKey(AssignedStatus.ASSIGNED_STATUS, DSL.name("assigned_status_pkey"), new TableField[] { AssignedStatus.ASSIGNED_STATUS.ITEM_ID }, true);
     public static final UniqueKey<CategoriesRecord> CATEGORIES_PKEY = Internal.createUniqueKey(Categories.CATEGORIES, DSL.name("categories_pkey"), new TableField[] { Categories.CATEGORIES.CATEGORY_ID }, true);
     public static final UniqueKey<DatabasechangeloglockRecord> DATABASECHANGELOGLOCK_PKEY = Internal.createUniqueKey(Databasechangeloglock.DATABASECHANGELOGLOCK, DSL.name("databasechangeloglock_pkey"), new TableField[] { Databasechangeloglock.DATABASECHANGELOGLOCK.ID }, true);
     public static final UniqueKey<DeleteCategoryRecord> DELETE_CATEGORY_PKEY = Internal.createUniqueKey(DeleteCategory.DELETE_CATEGORY, DSL.name("delete_category_pkey"), new TableField[] { DeleteCategory.DELETE_CATEGORY.CATEGORY_ID }, true);

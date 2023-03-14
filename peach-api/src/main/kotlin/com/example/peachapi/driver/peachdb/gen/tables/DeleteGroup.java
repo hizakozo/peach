@@ -62,7 +62,7 @@ public class DeleteGroup extends TableImpl<DeleteGroupRecord> {
     /**
      * The column <code>public.delete_group.deleted_by</code>.
      */
-    public final TableField<DeleteGroupRecord, String> DELETED_BY = createField(DSL.name("deleted_by"), SQLDataType.VARCHAR(100).nullable(false), this, "");
+    public final TableField<DeleteGroupRecord, String> DELETED_BY = createField(DSL.name("deleted_by"), SQLDataType.VARCHAR(100).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP", SQLDataType.VARCHAR)), this, "");
 
     private DeleteGroup(Name alias, Table<DeleteGroupRecord> aliased) {
         this(alias, aliased, null);

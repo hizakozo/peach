@@ -62,7 +62,7 @@ public class DeleteCategory extends TableImpl<DeleteCategoryRecord> {
     /**
      * The column <code>public.delete_category.deleted_by</code>.
      */
-    public final TableField<DeleteCategoryRecord, String> DELETED_BY = createField(DSL.name("deleted_by"), SQLDataType.VARCHAR(100).nullable(false), this, "");
+    public final TableField<DeleteCategoryRecord, String> DELETED_BY = createField(DSL.name("deleted_by"), SQLDataType.VARCHAR(100).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP", SQLDataType.VARCHAR)), this, "");
 
     private DeleteCategory(Name alias, Table<DeleteCategoryRecord> aliased) {
         this(alias, aliased, null);

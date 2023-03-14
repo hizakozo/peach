@@ -34,6 +34,7 @@ class GroupDbDriver(private val dsl: DSLContext) {
         Either.catch {
             dsl.select(GROUPS.GROUP_ID, GROUPS.GROUP_NAME, GROUPS.GROUP_REMARKS, GROUPS.CREATED_BY, GROUPS.CHANGED_BY)
                 .from(GROUPS)
+                .innerJoin(DELETE_GROUP).on(GROUPS.GROUP_ID.notEqual(DELETE_GROUP.GROUP_ID))
                 .innerJoin(USER_GROUPS)
                 .on(GROUPS.GROUP_ID.eq(USER_GROUPS.GROUP_ID))
                 .where(USER_GROUPS.USER_ID.eq(userId.value))

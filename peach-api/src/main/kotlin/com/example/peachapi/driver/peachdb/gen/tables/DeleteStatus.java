@@ -62,7 +62,7 @@ public class DeleteStatus extends TableImpl<DeleteStatusRecord> {
     /**
      * The column <code>public.delete_status.deleted_by</code>.
      */
-    public final TableField<DeleteStatusRecord, String> DELETED_BY = createField(DSL.name("deleted_by"), SQLDataType.VARCHAR(100).nullable(false), this, "");
+    public final TableField<DeleteStatusRecord, String> DELETED_BY = createField(DSL.name("deleted_by"), SQLDataType.VARCHAR(100).nullable(false).defaultValue(DSL.field("CURRENT_TIMESTAMP", SQLDataType.VARCHAR)), this, "");
 
     private DeleteStatus(Name alias, Table<DeleteStatusRecord> aliased) {
         this(alias, aliased, null);
