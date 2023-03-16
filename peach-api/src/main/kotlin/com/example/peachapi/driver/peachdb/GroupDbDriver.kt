@@ -33,6 +33,24 @@ class GroupDbDriver(private val dsl: DSLContext) {
             }
         }
 
+    suspend fun getGroup(groupId: GroupId): Either<Throwable, GroupDetailRecord?> =
+        Either.catch {
+            dsl.select(GROUPS.GROUP_ID, GROUPS.GROUP_NAME, GROUPS.GROUP_REMARKS, GROUPS.CREATED_BY,
+                GROUPS.CHANGED_BY, INVITE_GROUP.INVITE_CODE, INVITE_GROUP.TERM_TO, INVITE_GROUP.INVITE_BY)
+                .from(GROUPS)
+                .leftOuterJoin(INVITE_GROUP).on(GROUPS.GROUP_ID.eq(INVITE_GROUP.GROUP_ID))
+                .where(GROUPS.GROUP_ID.eq(groupId.value))
+                .fetchOneInto(GroupDetailRecord::class.java)
+        }
+
+    suspend fun getUserGroups(groupId: GroupId): Either<Throwable, List<UserGroupRecord>> =
+        Either.catch {
+            dsl.select(USER_GROUPS.USER_ID, USER_GROUPS.GROUP_ID)
+                .from(USER_GROUPS)
+                .where(USER_GROUPS.GROUP_ID.eq(groupId.value))
+                .fetchInto(UserGroupRecord::class.java)
+        }
+
     fun getGroups(userId: UserId): Either<Throwable, List<GroupRecord>> =
         Either.catch {
             dsl.select(GROUPS.GROUP_ID, GROUPS.GROUP_NAME, GROUPS.GROUP_REMARKS, GROUPS.CREATED_BY, GROUPS.CHANGED_BY)
@@ -124,6 +142,20 @@ data class GroupRecord(
     val groupRemarks: String?,
     val createdBy: String,
     val changedBy: String
+)
+data class UserGroupRecord(
+    val userId: String,
+    val groupId: String
+)
+data class GroupDetailRecord(
+    val groupId: UUID,
+    val groupName: String,
+    val groupRemarks: String?,
+    val createdBy: String,
+    val changedBy: String,
+    val inviteCode: String?,
+    val termTo: LocalDateTime?,
+    val inviteBy: String?
 )
 
 data class InviteGroupRecord(

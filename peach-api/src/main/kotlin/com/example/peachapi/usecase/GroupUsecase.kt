@@ -25,13 +25,14 @@ class GroupUseCase(private val groupRepository: GroupRepository, private val cat
 
     suspend fun getCategories(groupId: GroupId, userId: UserId): Either<ApiException, Categories> =
         groupRepository.existsUserGroup(userId, groupId)
-            .flatMap {isExist ->
+            .flatMap { isExist ->
                 if (isExist) {
                     categoryRepository.getCategories(groupId, userId)
                 } else {
                     Either.Left(PermissionException(null, "unavailable group"))
                 }
             }
+
     suspend fun update(command: UpdateGroupCommand): Either<ApiException, Group> =
         groupRepository.existsUserGroup(command.changedBy, command.groupId)
             .flatMap {
@@ -41,6 +42,7 @@ class GroupUseCase(private val groupRepository: GroupRepository, private val cat
                     Either.Left(PermissionException(null, "unavailable group"))
                 }
             }
+
     suspend fun delete(userId: UserId, groupId: GroupId): Either<ApiException, GroupId> =
         groupRepository.existsUserGroup(userId, groupId)
             .flatMap {
@@ -50,13 +52,16 @@ class GroupUseCase(private val groupRepository: GroupRepository, private val cat
                     groupRepository.delete(groupId, userId)
                 }
             }
-    suspend fun inviteGroup(groupInviteCode: GroupInviteCode, userId: UserId): Either<ApiException, Pair<GroupInviteCode, UserName>> =
+
+    suspend fun inviteGroup(
+        groupInviteCode: GroupInviteCode,
+        userId: UserId
+    ): Either<ApiException, Pair<GroupInviteCode, UserName>> =
         either {
             parZip(
-                {groupRepository.existsUserGroup(userId, groupInviteCode.groupId).bind()},
-                {groupRepository.existsInviteCode(groupInviteCode.inviteCode).bind()},
-            ) {
-                existUserGroup, existInviteCode ->
+                { groupRepository.existsUserGroup(userId, groupInviteCode.groupId).bind() },
+                { groupRepository.existsInviteCode(groupInviteCode.inviteCode).bind() },
+            ) { existUserGroup, existInviteCode ->
                 if (!existUserGroup) {
                     Either.Left(PermissionException(null, "unavailable group"))
                 } else if (existInviteCode) {
@@ -67,23 +72,36 @@ class GroupUseCase(private val groupRepository: GroupRepository, private val cat
                 }
             }.bind()
         }
-    suspend fun getInviteCode(groupId: GroupId, userId: UserId): Either<ApiException, Pair<GroupInviteCode, UserName>?> =
+
+    suspend fun detail(groupId: GroupId, userId: UserId): Either<ApiException, Pair<Group, UserGroups>> =
         groupRepository.existsUserGroup(userId, groupId)
             .flatMap {
                 if (it) {
-                    groupRepository.fetchGroupInviteCode(groupId)
+                    groupRepository.getGroup(groupId).flatMap { pair ->
+                        if (pair.first == null) {
+                            Either.Left(NotFoundDataException(null, "not fond data group"))
+                        } else {
+                            Either.Right(Pair(pair.first!!, pair.second))
+                        }
+                    }
                 } else {
                     Either.Left(PermissionException(null, "unavailable group"))
                 }
             }
 
-//    suspend fun joinGroup(userId: UserId, groupInviteCode: GroupInviteCode): Either<ApiException, Pair<GroupId, UserId>> =
-//        groupRepository.fetchGroupInviteCode(groupInviteCode)
-//            .mapLeft {
-//                when(it) {
-//                    is NotFoundDataException ->
-//                }
-//            }
+    suspend fun joinGroup(userId: UserId, groupInviteCode: GroupInviteCode): Either<ApiException, GroupId> =
+        groupRepository.fetchGroupInviteCode(groupInviteCode.groupId)
+            .flatMap {
+                if (it == null) Either.Left(NotFoundDataException(null, "not found invite code"))
+                else if (!it.first.inviteCode.isSame(groupInviteCode.inviteCode)) Either.Left(
+                    BadRequestException(
+                        null,
+                        "Invalid code"
+                    )
+                )
+                else if (!it.first.isTermOfValidity()) Either.Left(BadRequestException(null, "expiration of a term"))
+                else groupRepository.createUserGroups(userId, groupInviteCode.groupId).flatMap { Either.Right(it.second) }
+            }
 
 }
 

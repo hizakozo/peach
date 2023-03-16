@@ -11,7 +11,7 @@ data class GroupInviteCode (
 ) {
     fun isTermOfValidity() =
         PeachDateTime.now().value.let {
-            this.termTo.value.isBefore(it) || this.termTo.value.isEqual(it)
+            this.termTo.value.isAfter(it) || this.termTo.value.isEqual(it)
         }
     companion object {
         fun createNewCode(groupId: GroupId,code: String, inviteBy: UserId) =
@@ -26,4 +26,7 @@ data class GroupInviteCode (
 
 data class InviteCode(
     val value: String
-)
+) {
+    fun isSame(code: InviteCode) =
+        this.value == code.value
+}

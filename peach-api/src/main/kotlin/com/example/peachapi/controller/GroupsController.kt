@@ -96,24 +96,20 @@ class GroupsController(private val groupUseCase: GroupUseCase) {
                 { ServerResponse.ok().bodyValueAndAwait(GroupIdResponse(it.value)) }
             )
         }
-    suspend fun inviteCode(request: ServerRequest): ServerResponse =
+
+    suspend fun detail(request: ServerRequest): ServerResponse =
         userContext().let { context ->
             val user = context.authentication.details as AuthenticatedUser
             val groupId = GroupId(UUID.fromString(request.pathVariable("groupId")))
-            groupUseCase.getInviteCode(groupId, user.userId)
+            groupUseCase.detail(groupId, user.userId)
                 .fold(
-                    {it.toResponse()},
+                    { it.toResponse() },
                     {
-                        ServerResponse.ok().bodyValueAndAwait(
-                            InviteResponse(
-                                groupId.value,
-                                it?.first?.inviteCode?.value,
-                                it?.first?.termTo?.value.toString(),
-                                it?.second?.value
-                            )
-                    )}
+                        ServerResponse.ok().bodyValueAndAwait(it.toResponse())
+                    }
                 )
         }
+
     suspend fun invite(request: ServerRequest): ServerResponse =
         userContext().let { context ->
             val user = context.authentication.details as AuthenticatedUser
@@ -122,15 +118,31 @@ class GroupsController(private val groupUseCase: GroupUseCase) {
                 val groupInviteCode = GroupInviteCode.createNewCode(groupId, r.inviteCode, user.userId)
                 groupUseCase.inviteGroup(groupInviteCode, user.userId)
                     .fold(
-                        {it.toResponse()},
-                        {ServerResponse.ok().bodyValueAndAwait(
-                            InviteResponse(
-                                it.first.groupId.value,
-                                it.first.inviteCode.value,
-                                it.first.termTo.value.toString(),
-                                it.second.value
+                        { it.toResponse() },
+                        {
+                            ServerResponse.ok().bodyValueAndAwait(
+                                InviteResponse(
+                                    it.first.groupId.value,
+                                    it.first.inviteCode.value,
+                                    it.first.termTo.value.toString(),
+                                    it.second.value
+                                )
                             )
-                        )}
+                        }
+                    )
+            }
+        }
+
+    suspend fun join(request: ServerRequest): ServerResponse =
+        userContext().let { context ->
+            val user = context.authentication.details as AuthenticatedUser
+            request.bodyToMono<InviteRequest>().awaitSingle().let { r ->
+                val groupId = GroupId(UUID.fromString(request.pathVariable("groupId")))
+                val groupInviteCode = GroupInviteCode.createNewCode(groupId, r.inviteCode, user.userId)
+                groupUseCase.joinGroup(user.userId, groupInviteCode)
+                    .fold(
+                        { it.toResponse() },
+                        { ServerResponse.ok().bodyValueAndAwait(GroupIdResponse(it.value)) }
                     )
             }
         }
@@ -147,6 +159,7 @@ data class CreateGroupRequest(
 data class InviteRequest(
     val inviteCode: String
 )
+
 data class InviteResponse(
     val groupId: UUID,
     val inviteCode: String?,
@@ -186,6 +199,34 @@ fun Categories.toResponse() =
                 it.categoryId.value,
                 it.categoryName.value,
                 it.categoryRemarks.value
+            )
+        }
+    )
+
+data class GroupDetailResponse(
+    val groupId: UUID,
+    val groupName: String,
+    val groupRemarks: String?,
+    val inviteCode: String?,
+    val termTo: String?,
+    val inviteBy: String?,
+    val users: List<User>
+)
+
+data class User(val userId: String, val userName: String)
+
+fun Pair<Group, UserGroups>.toResponse() =
+    GroupDetailResponse(
+        this.first.groupId.value,
+        this.first.groupName.value,
+        this.first.groupRemarks?.value,
+        this.first.groupInviteCode?.inviteCode?.value,
+        this.first.groupInviteCode?.termTo?.value.toString(),
+        this.first.groupInviteCode?.inviteBy?.value,
+        this.second.list.map {
+            User(
+                it.userId.value,
+                it.userName!!.value
             )
         }
     )

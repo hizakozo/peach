@@ -2,14 +2,20 @@ package com.example.peachapi.gateway
 
 import arrow.core.Either
 import arrow.core.computations.ResultEffect.bind
+import arrow.core.computations.either
 import arrow.core.flatMap
+import arrow.core.leftIor
+import arrow.fx.coroutines.parZip
 import com.example.peachapi.domain.*
 import com.example.peachapi.domain.group.*
 import com.example.peachapi.domain.user.UserId
 import com.example.peachapi.domain.user.UserName
 import com.example.peachapi.driver.peachdb.GroupDbDriver
+import com.example.peachapi.driver.peachdb.GroupDetailRecord
 import com.example.peachapi.driver.peachdb.GroupRecord
+import com.example.peachapi.driver.peachdb.UserGroupRecord
 import com.example.peachapi.driver.peachdb.fireBase.FirebaseAuthDriver
+import com.google.protobuf.Api
 import org.jooq.DSLContext
 import org.springframework.stereotype.Component
 import java.util.UUID
@@ -28,6 +34,27 @@ class GroupRepositoryImpl(
         dbDriver.getGroups(userId)
             .toUnExpectError()
             .map { it.toGroups() }
+
+    override suspend fun getGroup(groupId: GroupId): Either<UnExpectError, Pair<Group?, UserGroups>> =
+        either {
+            parZip(
+                { dbDriver.getGroup(groupId).bind()?.toGroup() },
+                { dbDriver.getUserGroups(groupId).bind() }
+            ) { group, userGroupRecords ->
+                val userGroups = UserGroups(
+                    userGroupRecords.map {
+                        val userName = firebaseAuthDriver.getUserRecordByUID(UserId(it.userId)).bind().displayName
+                        UserGroup(
+                            GroupId(UUID.fromString(it.groupId)),
+                            UserId(it.userId),
+                            UserName(userName)
+                        )
+                    }
+                )
+                Pair(group, userGroups)
+            }
+        }
+
 
     override fun existsUserGroup(userId: UserId, groupId: GroupId): Either<UnExpectError, Boolean> =
         dbDriver.existUserGroup(userId, groupId)
@@ -102,6 +129,24 @@ class GroupRepositoryImpl(
             GroupName(this.groupName),
             if (this.groupRemarks == null) null else GroupRemarks(this.groupRemarks),
             UserId(this.createdBy),
-            UserId(this.changedBy)
+            UserId(this.changedBy),
+            null
         )
+
+    private fun GroupDetailRecord.toGroup(): Group =
+        Group(
+            GroupId(this.groupId),
+            GroupName(this.groupName),
+            if (this.groupRemarks == null) null else GroupRemarks(this.groupRemarks),
+            UserId(this.createdBy),
+            UserId(this.changedBy),
+            if (this.inviteCode == null) null else
+            GroupInviteCode(
+                GroupId(this.groupId),
+                InviteCode(this.inviteCode),
+                PeachDateTime(this.termTo!!),
+                UserId(this.inviteBy!!)
+            )
+        )
+
 }
