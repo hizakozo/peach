@@ -8,3 +8,4 @@ data class NotFoundDataException(val throwable: Throwable?, override val message
 data class UnExpectError(val cause: Throwable?, override val message: String?): ApiException(message)
 data class VerifyIdTokenException(override val message: String = "failed verify idToken"): ApiException(message)
 data class UnAuthorizeException(override val message: String?) : ApiException(message)
+data class BadRequestException(val cause: Throwable?, override val message: String?): ApiException(message)

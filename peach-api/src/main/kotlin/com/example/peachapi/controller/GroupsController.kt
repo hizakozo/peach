@@ -1,8 +1,10 @@
 package com.example.peachapi.controller
 
 import arrow.core.computations.either
+import arrow.core.left
 import com.example.peachapi.config.AuthenticatedUser
 import com.example.peachapi.domain.ApiException
+import com.example.peachapi.domain.GroupInviteCode
 import com.example.peachapi.domain.category.Categories
 import com.example.peachapi.domain.group.*
 import com.example.peachapi.usecase.GroupUseCase
@@ -94,6 +96,44 @@ class GroupsController(private val groupUseCase: GroupUseCase) {
                 { ServerResponse.ok().bodyValueAndAwait(GroupIdResponse(it.value)) }
             )
         }
+    suspend fun inviteCode(request: ServerRequest): ServerResponse =
+        userContext().let { context ->
+            val user = context.authentication.details as AuthenticatedUser
+            val groupId = GroupId(UUID.fromString(request.pathVariable("groupId")))
+            groupUseCase.getInviteCode(groupId, user.userId)
+                .fold(
+                    {it.toResponse()},
+                    {
+                        ServerResponse.ok().bodyValueAndAwait(
+                            InviteResponse(
+                                groupId.value,
+                                it?.first?.inviteCode?.value,
+                                it?.first?.termTo?.value.toString(),
+                                it?.second?.value
+                            )
+                    )}
+                )
+        }
+    suspend fun invite(request: ServerRequest): ServerResponse =
+        userContext().let { context ->
+            val user = context.authentication.details as AuthenticatedUser
+            request.bodyToMono<InviteRequest>().awaitSingle().let { r ->
+                val groupId = GroupId(UUID.fromString(request.pathVariable("groupId")))
+                val groupInviteCode = GroupInviteCode.createNewCode(groupId, r.inviteCode, user.userId)
+                groupUseCase.inviteGroup(groupInviteCode, user.userId)
+                    .fold(
+                        {it.toResponse()},
+                        {ServerResponse.ok().bodyValueAndAwait(
+                            InviteResponse(
+                                it.first.groupId.value,
+                                it.first.inviteCode.value,
+                                it.first.termTo.value.toString(),
+                                it.second.value
+                            )
+                        )}
+                    )
+            }
+        }
 }
 
 fun Group.toResponse(): GroupResponse =
@@ -102,6 +142,16 @@ fun Group.toResponse(): GroupResponse =
 data class CreateGroupRequest(
     val groupName: String,
     val groupRemarks: String?
+)
+
+data class InviteRequest(
+    val inviteCode: String
+)
+data class InviteResponse(
+    val groupId: UUID,
+    val inviteCode: String?,
+    val termTo: String?,
+    val inviteFromName: String?
 )
 
 data class GroupResponse(

@@ -1,6 +1,8 @@
 package com.example.peachapi.driver.peachdb
 
 import arrow.core.Either
+import com.example.peachapi.domain.GroupInviteCode
+import com.example.peachapi.domain.InviteCode
 import com.example.peachapi.domain.category.CategoryId
 import com.example.peachapi.domain.group.*
 import com.example.peachapi.domain.user.UserId
@@ -9,6 +11,7 @@ import com.example.peachapi.driver.peachdb.gen.tables.records.GroupsRecord
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
 import java.util.UUID
 @Component
 class GroupDbDriver(private val dsl: DSLContext) {
@@ -34,10 +37,11 @@ class GroupDbDriver(private val dsl: DSLContext) {
         Either.catch {
             dsl.select(GROUPS.GROUP_ID, GROUPS.GROUP_NAME, GROUPS.GROUP_REMARKS, GROUPS.CREATED_BY, GROUPS.CHANGED_BY)
                 .from(GROUPS)
-                .innerJoin(DELETE_GROUP).on(GROUPS.GROUP_ID.notEqual(DELETE_GROUP.GROUP_ID))
+                .leftOuterJoin(DELETE_GROUP).on(GROUPS.GROUP_ID.eq(DELETE_GROUP.GROUP_ID))
                 .innerJoin(USER_GROUPS)
                 .on(GROUPS.GROUP_ID.eq(USER_GROUPS.GROUP_ID))
                 .where(USER_GROUPS.USER_ID.eq(userId.value))
+                .and(DELETE_GROUP.GROUP_ID.isNull)
                 .fetchInto(GroupRecord::class.java)
         }
     fun existUserGroup(userId: UserId, groupId: GroupId): Either<Throwable, Boolean> =
@@ -64,6 +68,50 @@ class GroupDbDriver(private val dsl: DSLContext) {
                 .set(DELETE_GROUP.DELETED_BY, deleteBy.value)
                 .returning().fetchOne()?.groupId
         }
+    fun existsInviteCode(inviteCode: InviteCode): Either<Throwable, Boolean> =
+        Either.catch {
+            dsl.fetchExists(
+                dsl.selectOne()
+                    .from(INVITE_GROUP)
+                    .where(INVITE_GROUP.INVITE_CODE.eq(inviteCode.value))
+            )
+        }
+    fun createInviteGroup(groupInviteCode: GroupInviteCode, userId: UserId): Either<Throwable, Unit> =
+        Either.catch {
+            dsl.insertInto(INVITE_GROUP)
+                .set(INVITE_GROUP.GROUP_ID, groupInviteCode.groupId.value)
+                .set(INVITE_GROUP.INVITE_CODE, groupInviteCode.inviteCode.value)
+                .set(INVITE_GROUP.INVITE_BY, userId.value)
+                .set(INVITE_GROUP.TERM_TO, groupInviteCode.termTo.value)
+                .execute()
+        }
+    fun deleteInviteGroup(groupId: GroupId): Either<Throwable, Unit> =
+        Either.catch {
+            dsl.delete(INVITE_GROUP)
+                .where(INVITE_GROUP.GROUP_ID.eq(groupId.value))
+                .execute()
+        }
+    fun createUserGroups(userId: UserId, groupId: GroupId): Either<Throwable, Unit> =
+        Either.catch {
+            dsl.insertInto(USER_GROUPS)
+                .set(USER_GROUPS.USER_ID, userId.value)
+                .set(USER_GROUPS.GROUP_ID, groupId.value)
+                .execute()
+        }
+    fun deleteUserGroups(userId: UserId, groupId: GroupId): Either<Throwable, Unit> =
+        Either.catch {
+            dsl.delete(USER_GROUPS)
+                .where(USER_GROUPS.USER_ID.eq(userId.value))
+                .and(USER_GROUPS.GROUP_ID.eq(groupId.value))
+                .execute()
+        }
+    fun fetchGroupInviteCode(groupId: GroupId): Either<Throwable, InviteGroupRecord?> =
+        Either.catch {
+            dsl.select(INVITE_GROUP.GROUP_ID, INVITE_GROUP.INVITE_CODE, INVITE_GROUP.TERM_TO, INVITE_GROUP.INVITE_BY)
+                .from(INVITE_GROUP)
+                .where(INVITE_GROUP.GROUP_ID.eq(groupId.value))
+                .fetchOneInto(InviteGroupRecord::class.java)
+        }
     private fun GroupsRecord.toRecord() =
         GroupRecord(
             this.groupId, this.groupName, this.groupRemarks, this.createdBy, this.changedBy
@@ -76,4 +124,11 @@ data class GroupRecord(
     val groupRemarks: String?,
     val createdBy: String,
     val changedBy: String
+)
+
+data class InviteGroupRecord(
+    val groupId: String,
+    val inviteCode: String,
+    val termTo: LocalDateTime,
+    val inviteBy: String
 )

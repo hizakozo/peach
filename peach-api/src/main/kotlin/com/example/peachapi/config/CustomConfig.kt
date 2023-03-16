@@ -10,4 +10,5 @@ class CustomConfig {
     lateinit var env: String
     lateinit var allowedOrigins: String
     lateinit var googleClientId: String
+    lateinit var serviceAccountKeyPath: String
 }

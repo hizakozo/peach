@@ -116,3 +116,16 @@ CREATE TABLE IF NOT EXISTS assigned_status
     FOREIGN KEY (item_id) REFERENCES items (item_id),
     FOREIGN KEY (status_id) REFERENCES statues (status_id)
 );
+
+CREATE TABLE IF NOT EXISTS invite_group
+(
+    group_id    uuid                                NOT NULL,
+    invite_code varchar(100)                         NOT NULL,
+    term_to     timestamp                           NOT NULL,
+    invite_at   timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    invite_by   varchar(100)                        NOT NULL,
+    PRIMARY KEY (group_id),
+    UNIQUE (invite_code),
+    UNIQUE (group_id),
+    FOREIGN KEY (group_id) REFERENCES groups (group_id)
+);

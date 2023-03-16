@@ -14,6 +14,7 @@ import com.example.peachapi.driver.peachdb.gen.tables.DeleteItem;
 import com.example.peachapi.driver.peachdb.gen.tables.DeleteStatus;
 import com.example.peachapi.driver.peachdb.gen.tables.GroupEntryQualifications;
 import com.example.peachapi.driver.peachdb.gen.tables.Groups;
+import com.example.peachapi.driver.peachdb.gen.tables.InviteGroup;
 import com.example.peachapi.driver.peachdb.gen.tables.Items;
 import com.example.peachapi.driver.peachdb.gen.tables.Statues;
 import com.example.peachapi.driver.peachdb.gen.tables.UserGroups;
@@ -90,6 +91,11 @@ public class Public extends SchemaImpl {
     public final Groups GROUPS = Groups.GROUPS;
 
     /**
+     * The table <code>public.invite_group</code>.
+     */
+    public final InviteGroup INVITE_GROUP = InviteGroup.INVITE_GROUP;
+
+    /**
      * The table <code>public.items</code>.
      */
     public final Items ITEMS = Items.ITEMS;
@@ -130,6 +136,7 @@ public class Public extends SchemaImpl {
             DeleteStatus.DELETE_STATUS,
             GroupEntryQualifications.GROUP_ENTRY_QUALIFICATIONS,
             Groups.GROUPS,
+            InviteGroup.INVITE_GROUP,
             Items.ITEMS,
             Statues.STATUES,
             UserGroups.USER_GROUPS);

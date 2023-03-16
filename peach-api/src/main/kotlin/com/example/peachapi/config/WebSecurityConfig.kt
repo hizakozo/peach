@@ -1,6 +1,6 @@
 package com.example.peachapi.config
 
-import com.example.peachapi.utils.JwtUtil
+import com.google.firebase.auth.FirebaseAuth
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -19,7 +19,7 @@ import org.springframework.web.server.WebFilter
 @Configuration
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
-class WebSecurityConfig(val config: CustomConfig, val jwtUtil: JwtUtil){
+class WebSecurityConfig(val config: CustomConfig, val firebaseAuth: FirebaseAuth){
 
     val API_PATH = "/v1/**"
 
@@ -30,7 +30,7 @@ class WebSecurityConfig(val config: CustomConfig, val jwtUtil: JwtUtil){
             .withDisableHttpBasicAuth()
             .withPublicEndPoint(HttpMethod.GET, "/ping")
             .withPublicEndPoint(HttpMethod.POST,"/auth")
-            .withSessionAuthentication(API_PATH, SessionJwtFilter(config, jwtUtil))
+            .withSessionAuthentication(API_PATH, SessionJwtFilter(config, firebaseAuth))
             .csrf().disable()
 
         return http.build()

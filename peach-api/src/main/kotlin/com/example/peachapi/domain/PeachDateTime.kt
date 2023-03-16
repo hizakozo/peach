@@ -8,5 +8,7 @@ data class PeachDateTime (
 ) {
     companion object {
         fun now(): PeachDateTime = PeachDateTime(LocalDateTime.now(ZoneId.of("UTC")))
+        fun afterMinutes(minutes: Long) =
+            PeachDateTime(LocalDateTime.now(ZoneId.of("UTC")).plusMinutes(minutes))
     }
 }

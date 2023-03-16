@@ -14,6 +14,7 @@ import com.example.peachapi.driver.peachdb.gen.tables.DeleteItem;
 import com.example.peachapi.driver.peachdb.gen.tables.DeleteStatus;
 import com.example.peachapi.driver.peachdb.gen.tables.GroupEntryQualifications;
 import com.example.peachapi.driver.peachdb.gen.tables.Groups;
+import com.example.peachapi.driver.peachdb.gen.tables.InviteGroup;
 import com.example.peachapi.driver.peachdb.gen.tables.Items;
 import com.example.peachapi.driver.peachdb.gen.tables.Statues;
 import com.example.peachapi.driver.peachdb.gen.tables.UserGroups;
@@ -74,6 +75,11 @@ public class Tables {
      * The table <code>public.groups</code>.
      */
     public static final Groups GROUPS = Groups.GROUPS;
+
+    /**
+     * The table <code>public.invite_group</code>.
+     */
+    public static final InviteGroup INVITE_GROUP = InviteGroup.INVITE_GROUP;
 
     /**
      * The table <code>public.items</code>.

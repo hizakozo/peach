@@ -25,6 +25,7 @@ class Router {
             DELETE("/groups/{groupId}", handler::delete)
             PUT("/groups/{groupId}", handler::update)
             GET("/groups/{groupId}/categories", handler::getCategories)
+            POST("/groups/{groupId}/invite", handler::invite)
         }
     }
     @Bean

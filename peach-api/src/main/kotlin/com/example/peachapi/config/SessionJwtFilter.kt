@@ -1,33 +1,27 @@
 package com.example.peachapi.config
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
-import com.auth0.jwt.interfaces.DecodedJWT
 import com.example.peachapi.domain.user.MailAddress
 import com.example.peachapi.domain.user.UserId
 import com.example.peachapi.domain.user.UserName
-import com.example.peachapi.utils.JwtUtil
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseToken
-import org.springframework.context.annotation.Configuration
 import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.WebFilter
 import org.springframework.web.server.WebFilterChain
 import org.springframework.web.util.pattern.PathPatternParser
 import reactor.core.publisher.Mono
-import java.util.*
 
-class SessionJwtFilter(private val config: CustomConfig, private val jwtUtil: JwtUtil) : WebFilter {
+class SessionJwtFilter(private val config: CustomConfig, private val firebaseAuth: FirebaseAuth) : WebFilter {
     override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> =
         when {
             exchange.request.matchesPattern("/v1/**") -> {
                 exchange.request.headers["authorization"]?.first().toString()
                     .let { token ->
-                        jwtUtil.verifyGoogleIdToken(token)?.toUserAuthentication()
+                        verifyIdToken(token)?.toUserAuthentication()
                     }
                     ?.let { userAuthentication ->
                         chain.filter(exchange)
@@ -41,6 +35,12 @@ class SessionJwtFilter(private val config: CustomConfig, private val jwtUtil: Jw
         PathPatternParser()
             .parse(pattern)
             .matches(this.path.pathWithinApplication())
+    private fun verifyIdToken(idToken: String): FirebaseToken? =
+        try {
+            firebaseAuth.verifyIdToken(idToken)
+        } catch (e: Exception) {
+            null
+        }
 }
 
 data class AuthenticatedUser(

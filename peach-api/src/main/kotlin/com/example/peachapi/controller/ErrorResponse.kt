@@ -1,6 +1,7 @@
 package com.example.peachapi.controller
 
 import com.example.peachapi.domain.ApiException
+import com.example.peachapi.domain.BadRequestException
 import com.example.peachapi.domain.PermissionException
 import com.example.peachapi.domain.UnExpectError
 import org.springframework.http.HttpStatus
@@ -16,6 +17,10 @@ suspend fun ApiException.toResponse(): ServerResponse =
         is PermissionException -> {
             ServerResponse.status(HttpStatus.FORBIDDEN)
                 .bodyValueAndAwait(this.message?: "permission error")
+        }
+        is BadRequestException -> {
+            ServerResponse.status(HttpStatus.BAD_REQUEST)
+                .bodyValueAndAwait(this.message?: "bad request")
         }
         else -> {
             ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
