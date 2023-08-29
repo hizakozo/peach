@@ -78,12 +78,11 @@ class CategoryDbDriver(private val dsl: DSLContext) {
                 .where(CATEGORIES.CATEGORY_ID.eq(categoryId.value))
                 .returning().fetchOne()?.toRecord()
         }
-    suspend fun delete(categoryId: CategoryId, deleteBy: UserId): Either<Throwable, CategoryId?> =
+    fun delete(categoryIds: List<UUID>, context: DSLContext): Either<Throwable, Unit> =
         Either.catch {
-            dsl.insertInto(DELETE_CATEGORY)
-                .set(DELETE_CATEGORY.CATEGORY_ID, categoryId.value)
-                .set(DELETE_CATEGORY.DELETED_BY, deleteBy.value)
-                .returning().fetchOne()?.let { CategoryId(it.categoryId) }
+            context.delete(CATEGORIES)
+                .where(CATEGORIES.CATEGORY_ID.`in`(categoryIds))
+                .execute()
         }
     private fun CategoriesRecord.toRecord() =
         CategoryRecord(

@@ -17,8 +17,8 @@ interface GroupRepository {
     suspend fun update(groupId: GroupId, groupName: GroupName, groupRemarks: GroupRemarks, changedBy: UserId): Either<UnExpectError, Group>
     suspend fun delete(groupId: GroupId, userId: UserId): Either<UnExpectError, GroupId>
     suspend fun existsInviteCode(inviteCode: InviteCode): Either<UnExpectError, Boolean>
-    suspend fun createInviteCode(groupInviteCode: GroupInviteCode, userId: UserId): Either<UnExpectError, Pair<GroupInviteCode, UserName>>
-    suspend fun fetchGroupInviteCode(groupId: GroupId): Either<UnExpectError, Pair<GroupInviteCode, UserName>?>
-    suspend fun createUserGroups(userId: UserId, groupId: GroupId): Either<UnExpectError, Pair<UserId, GroupId>>
+    suspend fun createInviteCode(groupInviteCode: GroupInviteCode, userId: UserId): Either<UnExpectError, GroupInviteCode>
+    suspend fun fetchGroupByInviteCode(inviteCode: InviteCode): Either<UnExpectError, Group?>
+    suspend fun createUserGroups(userId: UserId, groupId: GroupId): Either<UnExpectError, Group>
     suspend fun deleteUserGroups(userId: UserId, groupId: GroupId): Either<UnExpectError, GroupId>
 }

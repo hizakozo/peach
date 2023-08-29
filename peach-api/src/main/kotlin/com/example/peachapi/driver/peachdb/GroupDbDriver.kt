@@ -33,9 +33,9 @@ class GroupDbDriver(private val dsl: DSLContext) {
             }
         }
 
-    suspend fun getGroup(groupId: GroupId): Either<Throwable, GroupDetailRecord?> =
+    fun getGroup(groupId: GroupId, context: DSLContext): Either<Throwable, GroupDetailRecord?> =
         Either.catch {
-            dsl.select(GROUPS.GROUP_ID, GROUPS.GROUP_NAME, GROUPS.GROUP_REMARKS, GROUPS.CREATED_BY,
+            context.select(GROUPS.GROUP_ID, GROUPS.GROUP_NAME, GROUPS.GROUP_REMARKS, GROUPS.CREATED_BY,
                 GROUPS.CHANGED_BY, INVITE_GROUP.INVITE_CODE, INVITE_GROUP.TERM_TO, INVITE_GROUP.INVITE_BY)
                 .from(GROUPS)
                 .leftOuterJoin(INVITE_GROUP).on(GROUPS.GROUP_ID.eq(INVITE_GROUP.GROUP_ID))
@@ -79,12 +79,11 @@ class GroupDbDriver(private val dsl: DSLContext) {
                 .where(GROUPS.GROUP_ID.eq(groupId.value))
                 .returning().fetchOne()?.toRecord()
         }
-    suspend fun delete(groupId: GroupId, deleteBy: UserId): Either<Throwable, UUID?> =
+    fun delete(groupId: GroupId, context: DSLContext): Either<Throwable, Unit> =
         Either.catch {
-            dsl.insertInto(DELETE_GROUP)
-                .set(DELETE_GROUP.GROUP_ID, groupId.value)
-                .set(DELETE_GROUP.DELETED_BY, deleteBy.value)
-                .returning().fetchOne()?.groupId
+            context.delete(GROUPS)
+                .where(GROUPS.GROUP_ID.eq(groupId.value))
+                .execute()
         }
     fun existsInviteCode(inviteCode: InviteCode): Either<Throwable, Boolean> =
         Either.catch {
@@ -103,15 +102,21 @@ class GroupDbDriver(private val dsl: DSLContext) {
                 .set(INVITE_GROUP.TERM_TO, groupInviteCode.termTo.value)
                 .execute()
         }
-    fun deleteInviteGroup(groupId: GroupId): Either<Throwable, Unit> =
+    fun deleteInviteGroup(groupId: GroupId, context: DSLContext): Either<Throwable, Unit> =
         Either.catch {
-            dsl.delete(INVITE_GROUP)
+            context.delete(INVITE_GROUP)
                 .where(INVITE_GROUP.GROUP_ID.eq(groupId.value))
                 .execute()
         }
-    fun createUserGroups(userId: UserId, groupId: GroupId): Either<Throwable, Unit> =
+    fun deleteUserGroupByGroupId(groupId: GroupId, context: DSLContext): Either<Throwable, Unit> =
         Either.catch {
-            dsl.insertInto(USER_GROUPS)
+            context.delete(USER_GROUPS)
+                .where(USER_GROUPS.GROUP_ID.eq(groupId.value))
+                .execute()
+        }
+    fun createUserGroups(userId: UserId, groupId: GroupId, context: DSLContext): Either<Throwable, Unit> =
+        Either.catch {
+            context.insertInto(USER_GROUPS)
                 .set(USER_GROUPS.USER_ID, userId.value)
                 .set(USER_GROUPS.GROUP_ID, groupId.value)
                 .execute()
@@ -134,6 +139,15 @@ class GroupDbDriver(private val dsl: DSLContext) {
         GroupRecord(
             this.groupId, this.groupName, this.groupRemarks, this.createdBy, this.changedBy
         )
+    suspend fun getGroupByInviteCode(inviteCode: InviteCode, context: DSLContext): Either<Throwable, GroupDetailRecord?> =
+        Either.catch {
+            context.select(GROUPS.GROUP_ID, GROUPS.GROUP_NAME, GROUPS.GROUP_REMARKS, GROUPS.CREATED_BY,
+                GROUPS.CHANGED_BY, INVITE_GROUP.INVITE_CODE, INVITE_GROUP.TERM_TO, INVITE_GROUP.INVITE_BY)
+                .from(GROUPS)
+                .leftOuterJoin(INVITE_GROUP).on(GROUPS.GROUP_ID.eq(INVITE_GROUP.GROUP_ID))
+                .where(INVITE_GROUP.INVITE_CODE.eq(inviteCode.value))
+                .fetchOneInto(GroupDetailRecord::class.java)
+        }
 }
 
 data class GroupRecord(

@@ -56,6 +56,11 @@ class StatusDriver(private val dsl: DSLContext) {
                 .set(DELETE_STATUS.DELETED_BY, deleteBy.value)
                 .returning().fetchOne()?.statusId
         }
+    fun deleteByCategoryIds(categoryIds: List<UUID>, context: DSLContext): Either<Throwable, Int> =
+        Either.catch {
+            context.delete(STATUES)
+                .where(STATUES.CATEGORY_ID.`in`(categoryIds)).execute()
+        }
 }
 
 fun StatuesRecord.toRecord() =

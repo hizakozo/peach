@@ -3,6 +3,7 @@ package com.example.peachapi.usecase
 import arrow.core.Either
 import arrow.core.computations.either
 import arrow.core.flatMap
+import arrow.core.right
 import arrow.fx.coroutines.parZip
 import com.example.peachapi.domain.*
 import com.example.peachapi.domain.category.Categories
@@ -56,20 +57,13 @@ class GroupUseCase(private val groupRepository: GroupRepository, private val cat
     suspend fun inviteGroup(
         groupInviteCode: GroupInviteCode,
         userId: UserId
-    ): Either<ApiException, Pair<GroupInviteCode, UserName>> =
+    ): Either<ApiException, GroupInviteCode> =
         either {
-            parZip(
-                { groupRepository.existsUserGroup(userId, groupInviteCode.groupId).bind() },
-                { groupRepository.existsInviteCode(groupInviteCode.inviteCode).bind() },
-            ) { existUserGroup, existInviteCode ->
-                if (!existUserGroup) {
-                    Either.Left(PermissionException(null, "unavailable group"))
-                } else if (existInviteCode) {
-                    Either.Left(BadRequestException(null, "exist inviteCode"))
-                } else {
-                    val groupInviteInfo = groupRepository.createInviteCode(groupInviteCode, userId).bind()
-                    Either.Right(groupInviteInfo)
-                }
+            val existUserGroup = groupRepository.existsUserGroup(userId, groupInviteCode.groupId).bind()
+            if (!existUserGroup) {
+                Either.Left(BadRequestException(null, ""))
+            } else {
+                groupRepository.createInviteCode(groupInviteCode, userId).bind().right()
             }.bind()
         }
 
@@ -89,18 +83,12 @@ class GroupUseCase(private val groupRepository: GroupRepository, private val cat
                 }
             }
 
-    suspend fun joinGroup(userId: UserId, groupInviteCode: GroupInviteCode): Either<ApiException, GroupId> =
-        groupRepository.fetchGroupInviteCode(groupInviteCode.groupId)
+    suspend fun joinGroup(userId: UserId, inviteCode: InviteCode): Either<ApiException, Group> =
+        groupRepository.fetchGroupByInviteCode(inviteCode)
             .flatMap {
                 if (it == null) Either.Left(NotFoundDataException(null, "not found invite code"))
-                else if (!it.first.inviteCode.isSame(groupInviteCode.inviteCode)) Either.Left(
-                    BadRequestException(
-                        null,
-                        "Invalid code"
-                    )
-                )
-                else if (!it.first.isTermOfValidity()) Either.Left(BadRequestException(null, "expiration of a term"))
-                else groupRepository.createUserGroups(userId, groupInviteCode.groupId).flatMap { Either.Right(it.second) }
+//                else if (!it.first.isTermOfValidity()) Either.Left(BadRequestException(null, "expiration of a term"))
+                else groupRepository.createUserGroups(userId, it.groupId).flatMap { group -> Either.Right(group) }
             }
 
 }

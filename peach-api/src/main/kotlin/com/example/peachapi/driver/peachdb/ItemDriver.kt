@@ -75,6 +75,17 @@ class ItemDriver(private val dsl: DSLContext) {
                 .where(ASSIGNED_STATUS.STATUS_ID.eq(statusId.value))
                 .execute()
         }
+    fun deleteAssignedStatusByCategoryIds(categoryIds: List<UUID>, context: DSLContext): Either<Throwable, Int> =
+        Either.catch {
+            context.delete(ASSIGNED_STATUS)
+                .where(
+                    ASSIGNED_STATUS.STATUS_ID.`in`(
+                        context.select(STATUES.STATUS_ID).from(STATUES).where(STATUES.CATEGORY_ID.`in`(categoryIds))
+                            .fetch()
+                    )
+                )
+                .execute()
+        }
     fun existByUserId(userId: UserId, itemId: ItemId): Either<Throwable, Boolean> =
         Either.catch {
             dsl.fetchExists(
@@ -105,6 +116,10 @@ class ItemDriver(private val dsl: DSLContext) {
     fun delete(itemId: ItemId, context: DSLContext): Either<Throwable, Unit> =
         Either.catch {
             context.delete(ITEMS).where(ITEMS.ITEM_ID.eq(itemId.value)).execute()
+        }
+    fun deleteByCategoryIds(categoryIds: List<UUID>, context: DSLContext): Either<Throwable, Unit> =
+        Either.catch {
+            context.delete(ITEMS).where(ITEMS.CATEGORY_ID.`in`(categoryIds)).execute()
         }
 }
 

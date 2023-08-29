@@ -1,28 +1,27 @@
 package com.example.peachapi.gateway
 
-import arrow.core.Either
+import arrow.core.*
 import arrow.core.computations.ResultEffect.bind
 import arrow.core.computations.either
-import arrow.core.flatMap
-import arrow.core.leftIor
 import arrow.fx.coroutines.parZip
 import com.example.peachapi.domain.*
 import com.example.peachapi.domain.group.*
 import com.example.peachapi.domain.user.UserId
 import com.example.peachapi.domain.user.UserName
-import com.example.peachapi.driver.peachdb.GroupDbDriver
-import com.example.peachapi.driver.peachdb.GroupDetailRecord
-import com.example.peachapi.driver.peachdb.GroupRecord
-import com.example.peachapi.driver.peachdb.UserGroupRecord
+import com.example.peachapi.driver.peachdb.*
 import com.example.peachapi.driver.peachdb.fireBase.FirebaseAuthDriver
 import com.google.protobuf.Api
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.springframework.stereotype.Component
 import java.util.UUID
 
 @Component
 class GroupRepositoryImpl(
     private val dbDriver: GroupDbDriver,
+    private val itemDriver: ItemDriver,
+    private val statusDriver: StatusDriver,
+    private val categoryDbDriver: CategoryDbDriver,
     private val dsl: DSLContext,
     private val firebaseAuthDriver: FirebaseAuthDriver
 ) : GroupRepository {
@@ -38,7 +37,7 @@ class GroupRepositoryImpl(
     override suspend fun getGroup(groupId: GroupId): Either<UnExpectError, Pair<Group?, UserGroups>> =
         either {
             parZip(
-                { dbDriver.getGroup(groupId).bind()?.toGroup() },
+                { dbDriver.getGroup(groupId, dsl).bind()?.toGroup() },
                 { dbDriver.getUserGroups(groupId).bind() }
             ) { group, userGroupRecords ->
                 val userGroups = UserGroups(
@@ -71,9 +70,23 @@ class GroupRepositoryImpl(
             .map { it!!.toGroup() }
 
     override suspend fun delete(groupId: GroupId, userId: UserId): Either<UnExpectError, GroupId> =
-        dbDriver.delete(groupId, userId)
-            .toUnExpectError()
-            .map { GroupId(it!!) }
+        // assin status, status, item, category, group
+        dsl.transactionResult { config ->
+            val context = DSL.using(config)
+            categoryDbDriver.getCategories(groupId, userId)
+                .flatMap {
+                    val categoryIds = it.map { c -> c.categoryId }
+                    itemDriver.deleteAssignedStatusByCategoryIds(categoryIds, context)
+                    statusDriver.deleteByCategoryIds(categoryIds, context)
+                    itemDriver.deleteByCategoryIds(categoryIds, context)
+                    categoryDbDriver.delete(categoryIds, context)
+                    dbDriver.deleteInviteGroup(groupId, context)
+                    dbDriver.deleteUserGroupByGroupId(groupId, context)
+                    dbDriver.delete(groupId, context)
+                }
+                .toUnExpectError()
+                .map { groupId }
+        }
 
     override suspend fun existsInviteCode(inviteCode: InviteCode): Either<UnExpectError, Boolean> =
         dbDriver.existsInviteCode(inviteCode).toUnExpectError()
@@ -81,40 +94,29 @@ class GroupRepositoryImpl(
     override suspend fun createInviteCode(
         groupInviteCode: GroupInviteCode,
         userId: UserId
-    ): Either<UnExpectError, Pair<GroupInviteCode, UserName>> =
-        dbDriver.deleteInviteGroup(groupInviteCode.groupId).toUnExpectError()
-            .flatMap {
-                dbDriver.createInviteGroup(groupInviteCode, userId).toUnExpectError().map {
-                    val userName = UserName(
-                        firebaseAuthDriver.getUserRecordByUID(groupInviteCode.inviteBy).map { it.displayName }.bind()
-                    )
-                    Pair(groupInviteCode, userName)
-                }
-            }
+    ): Either<UnExpectError, GroupInviteCode> =
+        dsl.transactionResult { config ->
+            val context = DSL.using(config)
+            dbDriver.deleteInviteGroup(groupInviteCode.groupId, context)
+            dbDriver.createInviteGroup(groupInviteCode, userId)
+        }.toUnExpectError()
+            .map { groupInviteCode }
 
-    override suspend fun fetchGroupInviteCode(groupId: GroupId): Either<UnExpectError, Pair<GroupInviteCode, UserName>?> =
-        dbDriver.fetchGroupInviteCode(groupId).toUnExpectError().flatMap { inviteGroupRecord ->
-            if (inviteGroupRecord == null) {
-                Either.Right(null)
-            }
-            val userName = UserName(
-                firebaseAuthDriver.getUserRecordByUID(UserId(inviteGroupRecord!!.inviteBy)).bind().displayName
-            )
-            val gc = GroupInviteCode(
-                GroupId(UUID.fromString(inviteGroupRecord.groupId)),
-                InviteCode(inviteGroupRecord.inviteCode),
-                PeachDateTime(inviteGroupRecord.termTo),
-                UserId(inviteGroupRecord.inviteBy)
-            )
-            Either.Right(Pair(gc, userName))
-        }
+    override suspend fun fetchGroupByInviteCode(inviteCode: InviteCode): Either<UnExpectError, Group?> =
+        dbDriver.getGroupByInviteCode(inviteCode, dsl).toUnExpectError().map { it?.toGroup() }
 
     override suspend fun createUserGroups(
         userId: UserId,
         groupId: GroupId
-    ): Either<UnExpectError, Pair<UserId, GroupId>> =
-        dbDriver.createUserGroups(userId, groupId).toUnExpectError().map { Pair(userId, groupId) }
-
+    ): Either<UnExpectError, Group> =
+        dsl.transactionResult { config ->
+            val context = DSL.using(config)
+            dbDriver.createUserGroups(userId, groupId, context)
+            dbDriver.getGroup(groupId, context)
+        }.toUnExpectError()
+            .flatMap {
+                it?.toGroup()?.right() ?: UnExpectError(null, "").left()
+            }
     override suspend fun deleteUserGroups(userId: UserId, groupId: GroupId): Either<UnExpectError, GroupId> =
         dbDriver.deleteUserGroups(userId, groupId).toUnExpectError().map { groupId }
 

@@ -1,6 +1,7 @@
 package com.example.peachapi.gateway
 
 import arrow.core.Either
+import arrow.core.flatMap
 import com.example.peachapi.domain.UnExpectError
 import com.example.peachapi.domain.category.*
 import com.example.peachapi.domain.group.GroupId
@@ -8,10 +9,14 @@ import com.example.peachapi.domain.status.StatusId
 import com.example.peachapi.domain.user.UserId
 import com.example.peachapi.driver.peachdb.CategoryDbDriver
 import com.example.peachapi.driver.peachdb.CategoryRecord
+import com.example.peachapi.driver.peachdb.ItemDriver
+import com.example.peachapi.driver.peachdb.StatusDriver
+import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.springframework.stereotype.Component
 
 @Component
-class CategoryRepositoryImpl(private val dbDriver: CategoryDbDriver): CategoryRepository {
+class CategoryRepositoryImpl(private val dbDriver: CategoryDbDriver, private val itemDriver: ItemDriver, private val statusDriver: StatusDriver, private val dslContext: DSLContext): CategoryRepository {
     override fun create(category: Category): Either<UnExpectError, Category> =
         dbDriver.create(category)
             .toUnExpectError()
@@ -42,8 +47,17 @@ class CategoryRepositoryImpl(private val dbDriver: CategoryDbDriver): CategoryRe
             .toUnExpectError()
 
     override suspend fun delete(categoryId: CategoryId, userId: UserId): Either<UnExpectError, CategoryId> =
-        dbDriver.delete(categoryId, userId).toUnExpectError()
-            .map { it!! }
+        dslContext.transactionResult { config ->
+            val context = DSL.using(config)
+            itemDriver.deleteAssignedStatusByCategoryIds(listOf(categoryId.value), context)
+                .flatMap {
+                    statusDriver.deleteByCategoryIds(listOf(categoryId.value), context)
+                    itemDriver.deleteByCategoryIds(listOf(categoryId.value), context)
+                    dbDriver.delete(listOf(categoryId.value), context)
+                }
+                .toUnExpectError()
+                .map { categoryId }
+        }
 
     override suspend fun update(
         categoryId: CategoryId,

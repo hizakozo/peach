@@ -26,7 +26,7 @@ class Router {
             PUT("/groups/{groupId}", handler::update)
             GET("/groups/{groupId}/categories", handler::getCategories)
             POST("/groups/{groupId}/invite", handler::invite)
-            POST("/groups/{groupId}/join", handler::join)
+            POST("/groups/join", handler::join)
             GET("/groups/{groupId}/detail", handler::detail)
         }
     }
