@@ -2,6 +2,8 @@ package com.example.peachapi.gateway
 
 import arrow.core.Either
 import arrow.core.computations.ResultEffect.bind
+import arrow.core.computations.either
+import arrow.core.flatMap
 import com.example.peachapi.domain.PeachDateTime
 import com.example.peachapi.domain.UnExpectError
 import com.example.peachapi.domain.category.CategoryId
@@ -62,9 +64,15 @@ class ItemRepositoryImpl(private val driver: ItemDriver, private val dslContext:
             .map { ItemId(it!!) }
 
     override suspend fun delete(itemId: ItemId, userId: UserId): Either<UnExpectError, ItemId> =
-        driver.delete(itemId, userId)
-            .toUnExpectError()
-            .map { ItemId(it!!) }
+        dslContext.transactionResult { config ->
+            val context = DSL.using(config)
+            driver.deleteAssignedStatus(itemId, context)
+                .flatMap {
+                    driver.delete(itemId, context)
+                }
+                .toUnExpectError()
+                .map { itemId }
+        }
 
     override suspend fun getById(itemId: ItemId): Either<UnExpectError, Item?> =
         driver.fetchById(itemId)

@@ -47,7 +47,7 @@ class Router {
             DELETE("/items/{itemId}", handler::delete)
             PUT("/items/{itemId}", handler::update)
             POST("/items/{itemId}/assignStatus", handler::assignStatus)
-            POST("/items/{itemId}/unAssignStatus", handler::unAssignStatus)
+            DELETE("/items/{itemId}/assignStatus", handler::unAssignStatus)
         }
     }
     @Bean

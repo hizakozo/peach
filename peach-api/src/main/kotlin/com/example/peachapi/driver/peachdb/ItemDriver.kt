@@ -95,12 +95,16 @@ class ItemDriver(private val dsl: DSLContext) {
                 .where(ITEMS.ITEM_ID.eq(itemId.value))
                 .returning().fetchOne()?.itemId
         }
-    suspend fun delete(itemId: ItemId, deleteBy: UserId): Either<Throwable, UUID?> =
+    fun insertDeleteItem(itemId: ItemId, deleteBy: UserId, context: DSLContext): Either<Throwable, UUID?> =
         Either.catch {
-            dsl.insertInto(DELETE_ITEM)
+            context.insertInto(DELETE_ITEM)
                 .set(DELETE_ITEM.ITEM_ID, itemId.value)
                 .set(DELETE_ITEM.DELETED_BY, deleteBy.value)
                 .returning().fetchOne()?.itemId
+        }
+    fun delete(itemId: ItemId, context: DSLContext): Either<Throwable, Unit> =
+        Either.catch {
+            context.delete(ITEMS).where(ITEMS.ITEM_ID.eq(itemId.value)).execute()
         }
 }
 
